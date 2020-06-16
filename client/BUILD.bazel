@@ -1,1 +1,17 @@
 load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library", "kt_jvm_binary")
+
+java_binary(
+    name = "client-bin",
+    main_class = "com.google.devtools.moe.client.Moe",
+    runtime_deps = ["//client/src/main/java/com/google/devtools/moe/client"],
+)
+
+genrule(
+    name = "moe",
+    outs = ["moe"],
+    srcs = [
+        "//util:java-exec-prefix",
+        ":client-bin_deploy.jar"
+    ],
+    cmd_bash = "cat $(location //util:java-exec-prefix) $(location :client-bin_deploy.jar) > $@",
+)

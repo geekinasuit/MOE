@@ -2,9 +2,11 @@
 *Make Open Easy*
 
 [![LICENSE](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/google/MOE/blob/master/LICENSE)
-[![Travis CI](https://img.shields.io/travis/google/MOE.svg)](https://travis-ci.org/google/MOE)
-[![GitHub Issues](https://img.shields.io/github/issues/google/MOE.svg)](https://github.com/google/MOE/issues)
-[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/google/MOE.svg)](https://github.com/google/MOE/pulls)
+[![CI](https://github.com/cgruber/MOE/workflows/CI/badge.svg)](https://github.com/cgruber/MOE/actions?query=workflow%3ACI)
+[![GitHub Issues](https://img.shields.io/github/issues/cgruber/MOE.svg)](https://github.com/cgruber/MOE/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/cgruber/MOE.svg)](https://github.com/cgruber/MOE/pulls)
+
+> Note: This is a personal fork by [cgruber](http://github.com/cgruber)
 
 ## Introduction
 
@@ -37,13 +39,12 @@ documentation update, which is forthcoming.
 
 ### Building MOE
 
-1. Install Apache Maven 3.1 if you don't already have it
+   1. Install [Bazelisk](http://github.com/bazelbuild/bazelisk)
    2. Checkout the Java-MOE source `git clone git@github.com:google/MOE.git`
-   3.  In the top-level directory that contains the build.xml file, run:
-     - `mvn install`
-     - `util/make-binary.sh`
-   4. The moe client binary should be created at `client/target/moe`
-
+   3. In the top level directory that contains the WORKSPACE file, run:
+      - `bazel build //client:moe`
+   4. The moe client binary should be created at `bazel-bin/client/moe`
+   5. (optionally) install the client somewhere in your `$PATH`
 
 ### Running MOE
 
@@ -52,16 +53,12 @@ Once you have the `moe` binary, you should be able to simply run:
 
 ## Contributing
 
-Contributing to MOE is subject to the guidelines in the CONTRIBUTING.md file,
-which, in brief, requires that contributors sign the [Individual Contributor
-License Agreement (CLA)][CLA].
-
-[CLA]: https://cla.developers.google.com/
-
+Contributing to MOE is subject to the guidelines in the CONTRIBUTING.md file
 
 ## License
 
 ```
+  Copyright 2011 The Moe Authors. All Rights Reserved.
   Copyright 2011 Google, Inc. All Rights Reserved.
 
   Licensed under the Apache License, Version 2.0 (the "License");
