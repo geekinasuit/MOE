@@ -1,12 +1,14 @@
 # Moe
 *Make Open Easy*
 
-[![LICENSE](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/google/MOE/blob/master/LICENSE)
-[![CI](https://github.com/cgruber/MOE/workflows/CI/badge.svg)](https://github.com/cgruber/MOE/actions?query=workflow%3ACI)
-[![GitHub Issues](https://img.shields.io/github/issues/cgruber/MOE.svg)](https://github.com/cgruber/MOE/issues)
-[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/cgruber/MOE.svg)](https://github.com/cgruber/MOE/pulls)
+[![LICENSE](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/geekinasuit/MOE/blob/master/LICENSE)
+[![CI](https://github.com/geekinasuit/MOE/workflows/CI/badge.svg)](https://github.com/geekinasuit/MOE/actions?query=workflow%3ACI)
+[![GitHub Issues](https://img.shields.io/github/issues/geekinasuit/MOE.svg)](https://github.com/geekinasuit/MOE/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/geekinasuit/MOE.svg)](https://github.com/geekinasuit/MOE/pulls)
 
-> Note: This is a personal fork by [cgruber](http://github.com/cgruber)
+> Note: This is a separately maintained fork of [Google's MOE](github.com/google/moe).
+> Given that Google's MOE is now unmaintained, little to no effort will be made to
+> keep in sync, and I expect the code to stray from the original substantially in detail.
 
 ## Introduction
 
