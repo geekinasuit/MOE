@@ -1,0 +1,50 @@
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_library", "kt_jvm_binary")
+
+package(default_visibility = ["//client:__subpackages__"])
+
+CORE_SRCS = [
+    "FileSystem.java",
+    "Lifetimes.java",
+    "InvalidProject.java",
+    "MoeProblem.java",
+    "MoeUserProblem.java",
+    "NoopFileSystem.java",
+    "NoopFileSystemModule.java",
+    "Ui.java",
+    "Utils.java",
+]
+java_library(
+    name = "core",
+    srcs = CORE_SRCS,
+    deps = [
+        "//client/src/main/java/com/google/devtools/moe/client/qualifiers",
+        "@maven//com/google/dagger",
+        "@maven//com/google/errorprone:error_prone_annotations",
+        "@maven//com/google/guava",
+        "@maven//joda-time",
+    ],
+)
+
+
+java_library(
+    name = "client",
+    srcs = glob(["**/*.java"], exclude = CORE_SRCS),
+    deps = [
+        ":core",
+        "//client/src/main/java/com/google/devtools/moe/client/codebase/expressions",
+        "//client/src/main/java/com/google/devtools/moe/client/config",
+        "//client/src/main/java/com/google/devtools/moe/client/gson",
+        "//client/src/main/java/com/google/devtools/moe/client/qualifiers",
+        "@maven//args4j",
+        "@maven//com/google/auto/factory",
+        "@maven//com/google/auto/value",
+        "@maven//com/google/dagger",
+        "@maven//com/google/guava",
+        "@maven//com/google/code/gson",
+        "@maven//com/squareup/okhttp",
+        "@maven//com/mikesamuel:json-sanitizer",
+        "@maven//com/google/errorprone:error_prone_annotations",
+        "@maven//com/google/code/findbugs:jsr305",
+        "@maven//joda-time",
+    ],
+)
