@@ -53,6 +53,10 @@ documentation update, which is forthcoming.
 Once you have the `moe` binary, you should be able to simply run:
 `moe <arguments for MOE>`
 
+### Configuring MOE
+
+To configure your project for moe, [check out the wiki](https://github.com/geekinasuit/moe/wiki)
+
 ## Contributing
 
 Contributing to MOE is subject to the guidelines in the CONTRIBUTING.md file
