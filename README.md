@@ -6,7 +6,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/geekinasuit/MOE.svg)](https://github.com/geekinasuit/MOE/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/geekinasuit/MOE.svg)](https://github.com/geekinasuit/MOE/pulls)
 
-> Note: This is a separately maintained fork of [Google's MOE](github.com/google/moe).
+> Note: This is a separately maintained fork of [Google's MOE](http://github.com/google/moe).
 > Given that Google's MOE is now unmaintained, little to no effort will be made to
 > keep in sync, and I expect the code to stray from the original substantially in detail.
 
