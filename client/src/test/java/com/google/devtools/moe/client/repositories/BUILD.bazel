@@ -76,8 +76,8 @@ jvm_unit_test(
     name = "RevisionTest",
     deps = [
         "//client/src/main/java/com/google/devtools/moe/client",
-        "@maven//com/google/code/gson",
         "@maven//com/google/truth",
+        "@maven//com/squareup/moshi",
         "@maven//junit",
     ],
 )

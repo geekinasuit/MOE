@@ -25,13 +25,13 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.devtools.moe.client.FileSystem;
+import com.google.devtools.moe.client.MoshiModule;
 import com.google.devtools.moe.client.SystemFileSystem;
-import com.google.devtools.moe.client.GsonModule;
 import com.google.devtools.moe.client.InvalidProject;
 import com.google.devtools.moe.client.repositories.Revision;
 import com.google.devtools.moe.client.testing.DummyDb;
-import com.google.gson.Gson;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import junit.framework.TestCase;
@@ -43,7 +43,6 @@ import org.mockito.Mockito;
  * Tests for the FileDb
  */
 public class FileDbTest extends TestCase {
-  private static final Gson GSON = GsonModule.provideGson();
   private final FileSystem filesystem = new SystemFileSystem();
 
   @Override
@@ -59,23 +58,23 @@ public class FileDbTest extends TestCase {
                 "  'equivalences': [",
                 "    {",
                 "      'rev1': {",
-                "        'revId': 'r1',",
-                "        'repositoryName': 'name1'",
+                "        'rev_id': 'r1',",
+                "        'repository_name': 'name1'",
                 "      },",
                 "      'rev2': {",
-                "        'revId': 'r2',",
-                "        'repositoryName': 'name2'",
+                "        'rev_id': 'r2',",
+                "        'repository_name': 'name2'",
                 "      }",
                 "    }",
                 "  ]",
                 "}",
-                "");
+                "").replace('\'', '"');
     FileDb db = parseJson(dbText);
     assertEquals(
         db.getEquivalences(),
         ImmutableSet.of(
-            RepositoryEquivalence.create(
-                Revision.create("r1", "name1"), Revision.create("r2", "name2"))));
+            new RepositoryEquivalence(
+                new Revision("r1", "name1"), new Revision("r2", "name2"))));
   }
 
   public void testEmptyDb() throws Exception {
@@ -86,8 +85,8 @@ public class FileDbTest extends TestCase {
   public void testNoteEquivalence() throws Exception {
     FileDb db = parseJson("{\"equivalences\":[]}");
     RepositoryEquivalence e =
-        RepositoryEquivalence.create(
-            Revision.create("r1", "name1"), Revision.create("r2", "name2"));
+        new RepositoryEquivalence(
+            new Revision("r1", "name1"), new Revision("r2", "name2"));
     db.noteEquivalence(e);
     assertEquals(db.getEquivalences(), ImmutableSet.of(e));
   }
@@ -95,7 +94,7 @@ public class FileDbTest extends TestCase {
   public void testNoteMigration() throws Exception {
     FileDb db = parseJson("{}");
     SubmittedMigration migration =
-        SubmittedMigration.create(Revision.create("r1", "name1"), Revision.create("r2", "name2"));
+        new SubmittedMigration(new Revision("r1", "name1"), new Revision("r2", "name2"));
     assertTrue(db.noteMigration(migration));
     // The migration has already been added, so noting it again should return false.
     assertFalse(db.noteMigration(migration));
@@ -109,39 +108,39 @@ public class FileDbTest extends TestCase {
                 "  'equivalences': [",
                 "    {",
                 "      'rev1': {",
-                "        'revId': 'r1',",
-                "        'repositoryName': 'name1'",
+                "        'rev_id': 'r1',",
+                "        'repository_name': 'name1'",
                 "      },",
                 "      'rev2': {",
-                "        'revId': 'r2',",
-                "        'repositoryName': 'name2'",
+                "        'rev_id': 'r2',",
+                "        'repository_name': 'name2'",
                 "      }",
                 "    },",
                 "    {",
                 "      'rev1': {",
-                "        'revId': 'r3',",
-                "        'repositoryName': 'name2'",
+                "        'rev_id': 'r3',",
+                "        'repository_name': 'name2'",
                 "      },",
                 "      'rev2': {",
-                "        'revId': 'r1',",
-                "        'repositoryName': 'name1'",
+                "        'rev_id': 'r1',",
+                "        'repository_name': 'name1'",
                 "      }",
                 "    }",
                 "  ]",
                 "}",
-                "");
+                "").replace('\'', '"');
 
     FileDb db = parseJson(null, dbText);
     assertEquals(
-        db.findEquivalences(Revision.create("r1", "name1"), "name2"),
-        ImmutableSet.of(Revision.create("r2", "name2"), Revision.create("r3", "name2")));
+        db.findEquivalences(new Revision("r1", "name1"), "name2"),
+        ImmutableSet.of(new Revision("r2", "name2"), new Revision("r3", "name2")));
   }
 
   public void testMakeDbFromFile() throws Exception {
     IMocksControl control = EasyMock.createControl();
     FileSystem filesystem = control.createMock(FileSystem.class);
     File dbFile = new File("/path/to/db");
-    FileDb.Factory factory = new FileDb.Factory(filesystem, GsonModule.provideGson());
+    FileDb.Factory factory = new FileDb.Factory(filesystem, MoshiModule.provideMoshi());
     String dbText =
         Joiner.on("\n")
             .join(
@@ -149,17 +148,17 @@ public class FileDbTest extends TestCase {
                 "  'equivalences': [",
                 "    {",
                 "      'rev1': {",
-                "        'revId': 'r1',",
-                "        'repositoryName': 'name1'",
+                "        'rev_id': 'r1',",
+                "        'repository_name': 'name1'",
                 "      },",
                 "      'rev2': {",
-                "        'revId': 'r2',",
-                "        'repositoryName': 'name2'",
+                "        'rev_id': 'r2',",
+                "        'repository_name': 'name2'",
                 "      }",
                 "    }",
                 "  ]",
                 "}",
-                "");
+                "").replace('\'', '"');
 
     expect(filesystem.fileToString(dbFile)).andReturn(dbText);
     expect(filesystem.exists(dbFile)).andReturn(true);
@@ -175,8 +174,12 @@ public class FileDbTest extends TestCase {
     FileSystem filesystem = control.createMock(FileSystem.class);
     File dbFile = new File("/path/to/db");
     String dbText = "{\n  \"equivalences\": [],\n  \"migrations\": []\n}\n";
-    DbStorage dbStorage = GSON.fromJson(dbText, DbStorage.class);
-    Db db = new FileDb(dbFile.getPath(), dbStorage, new FileDb.Writer(GSON, filesystem));
+    DbStorage dbStorage = MoshiModule.provideMoshi().adapter(DbStorage.class).fromJson(dbText);
+    Db db = new FileDb(
+        dbFile.getPath(),
+        dbStorage,
+        new FileDb.Writer(MoshiModule.provideMoshi(), filesystem)
+    );
     filesystem.write(dbText, dbFile);
     EasyMock.expectLastCall();
     control.replay();
@@ -193,38 +196,38 @@ public class FileDbTest extends TestCase {
                 "  'equivalences': [",
                 "    {",
                 "      'rev1': {",
-                "        'revId': 'r1',",
-                "        'repositoryName': 'name1'",
+                "        'rev_id': 'r1',",
+                "        'repository_name': 'name1'",
                 "      },",
                 "      'rev2': {",
-                "        'revId': 'r2',",
-                "        'repositoryName': 'name2'",
+                "        'rev_id': 'r2',",
+                "        'repository_name': 'name2'",
                 "      }",
                 "    }",
                 "  ],",
                 "  'migrations': [",
                 "    {",
-                "      'fromRevision': {",
-                "        'revId': 'r1',",
-                "        'repositoryName': 'name1'",
+                "      'from': {",
+                "        'rev_id': 'r1',",
+                "        'repository_name': 'name1'",
                 "      },",
-                "      'toRevision': {",
-                "        'revId': 'r2',",
-                "        'repositoryName': 'name2'",
+                "      'to': {",
+                "        'rev_id': 'r2',",
+                "        'repository_name': 'name2'",
                 "      }",
                 "    }",
                 "  ]",
                 "}",
-                "");
+                "").replace('\'', '"');
     FileDb db = parseJson(dbText.replace('\'', '"'));
     RepositoryEquivalence equivalence = Iterables.getOnlyElement(db.getEquivalences());
-    assertEquals("r1", equivalence.getRevisionForRepository("name1").revId());
-    assertEquals("r2", equivalence.getRevisionForRepository("name2").revId());
+    assertEquals("r1", equivalence.get("name1").revId());
+    assertEquals("r2", equivalence.get("name2").revId());
     SubmittedMigration migration = Iterables.getOnlyElement(db.getMigrations());
-    assertEquals("name1", migration.fromRevision().repositoryName());
-    assertEquals("r1", migration.fromRevision().revId());
-    assertEquals("name2", migration.toRevision().repositoryName());
-    assertEquals("r2", migration.toRevision().revId());
+    assertEquals("name1", migration.getFrom().repositoryName());
+    assertEquals("r1", migration.getFrom().revId());
+    assertEquals("name2", migration.getTo().repositoryName());
+    assertEquals("r2", migration.getTo().revId());
   }
 
   private FileDb parseJson(String dbText) throws InvalidProject {
@@ -232,8 +235,14 @@ public class FileDbTest extends TestCase {
   }
 
   private FileDb parseJson(String location, String dbText) throws InvalidProject {
-    DbStorage dbStorage = GSON.fromJson(dbText, DbStorage.class);
-    return new FileDb(location, dbStorage, new FileDb.Writer(GSON, filesystem));
+    try {
+      DbStorage dbStorage = MoshiModule.provideMoshi().adapter(DbStorage.class).fromJson(dbText);
+      return
+          new FileDb(location, dbStorage,
+              new FileDb.Writer(MoshiModule.provideMoshi(), filesystem));
+    } catch (IOException e) {
+      throw new InvalidProject("Error parsing database file: " + dbText);
+    }
   }
 
   public void testDatabaseUriSwitching_dummy() {

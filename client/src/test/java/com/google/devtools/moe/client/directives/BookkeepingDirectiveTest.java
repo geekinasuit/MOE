@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.devtools.moe.client.CommandRunner;
 import com.google.devtools.moe.client.FileSystem;
 import com.google.devtools.moe.client.Lifetimes;
+import com.google.devtools.moe.client.MoshiModule;
 import com.google.devtools.moe.client.Ui;
 import com.google.devtools.moe.client.codebase.ExpressionEngine;
 import com.google.devtools.moe.client.database.Bookkeeper;
@@ -33,7 +34,6 @@ import com.google.devtools.moe.client.database.DbStorage;
 import com.google.devtools.moe.client.database.FileDb;
 import com.google.devtools.moe.client.database.RepositoryEquivalence;
 import com.google.devtools.moe.client.database.SubmittedMigration;
-import com.google.devtools.moe.client.GsonModule;
 import com.google.devtools.moe.client.project.ProjectContext;
 import com.google.devtools.moe.client.repositories.Repositories;
 import com.google.devtools.moe.client.repositories.RepositoryType;
@@ -127,7 +127,7 @@ public class BookkeepingDirectiveTest extends TestCase {
     ProjectContext context = contextFactory.create("moe_config.txt");
     Db db =
         new FileDb(
-            DB_FILE.getPath(), storage, new FileDb.Writer(GsonModule.provideGson(), filesystem));
+            DB_FILE.getPath(), storage, new FileDb.Writer(MoshiModule.provideMoshi(), filesystem));
     BookkeepingDirective d =
         new BookkeepingDirective(new Bookkeeper(context, codebaseDiffer, db, ui, expressionEngine));
     d.dbLocation = DB_FILE.getAbsolutePath();
@@ -147,7 +147,7 @@ public class BookkeepingDirectiveTest extends TestCase {
     // expected db at end of call to bookkeep
     DbStorage expectedDb = new DbStorage();
     expectedDb.addEquivalence(
-        RepositoryEquivalence.create(Revision.create(1, "int"), Revision.create(1, "pub")));
+        new RepositoryEquivalence(new Revision(1, "int"), new Revision(1, "pub")));
 
     assertThat(storage).isEqualTo(expectedDb);
   }
@@ -176,7 +176,7 @@ public class BookkeepingDirectiveTest extends TestCase {
     ProjectContext context = contextFactory.create("moe_config.txt");
     Db db =
         new FileDb(
-            DB_FILE.getPath(), storage, new FileDb.Writer(GsonModule.provideGson(), filesystem));
+            DB_FILE.getPath(), storage, new FileDb.Writer(MoshiModule.provideMoshi(), filesystem));
     BookkeepingDirective d =
         new BookkeepingDirective(new Bookkeeper(context, codebaseDiffer, db, ui, expressionEngine));
     d.dbLocation = DB_FILE.getAbsolutePath();
@@ -190,8 +190,8 @@ public class BookkeepingDirectiveTest extends TestCase {
     // expected db at end of call to bookkeep
     DbStorage expectedDb = new DbStorage();
     expectedDb.addMigration(
-        SubmittedMigration.create(
-            Revision.create("migrated_from", "int"), Revision.create("migrated_to", "pub")));
+        new SubmittedMigration(
+            new Revision("migrated_from", "int"), new Revision("migrated_to", "pub")));
 
     assertThat(storage).isEqualTo(expectedDb);
   }
@@ -220,7 +220,7 @@ public class BookkeepingDirectiveTest extends TestCase {
     ProjectContext context = contextFactory.create("moe_config.txt");
     Db db =
         new FileDb(
-            DB_FILE.getPath(), storage, new FileDb.Writer(GsonModule.provideGson(), filesystem));
+            DB_FILE.getPath(), storage, new FileDb.Writer(MoshiModule.provideMoshi(), filesystem));
     BookkeepingDirective d =
         new BookkeepingDirective(new Bookkeeper(context, codebaseDiffer, db, ui, expressionEngine));
     d.dbLocation = DB_FILE.getAbsolutePath();
@@ -234,11 +234,11 @@ public class BookkeepingDirectiveTest extends TestCase {
     // expected db at end of call to bookkeep
     DbStorage expectedDb = new DbStorage();
     expectedDb.addEquivalence(
-        RepositoryEquivalence.create(
-            Revision.create("migrated_from", "int"), Revision.create("migrated_to", "pub")));
+        new RepositoryEquivalence(
+            new Revision("migrated_from", "int"), new Revision("migrated_to", "pub")));
     expectedDb.addMigration(
-        SubmittedMigration.create(
-            Revision.create("migrated_from", "int"), Revision.create("migrated_to", "pub")));
+        new SubmittedMigration(
+            new Revision("migrated_from", "int"), new Revision("migrated_to", "pub")));
 
     assertThat(storage).isEqualTo(expectedDb);
   }

@@ -42,8 +42,6 @@ public final class GsonModule {
           .registerTypeAdapterFactory(ConfigTypeAdapterFactory.create())
           .registerTypeAdapterFactory(MoeTypeAdapterFactory.create())
           .registerTypeHierarchyAdapter(ImmutableList.class, new ImmutableListDeserializer())
-          .registerTypeHierarchyAdapter(
-              RepositoryEquivalence.class, new RepositoryEquivalence.Serializer())
           .registerTypeAdapter(JsonObject.class, new JsonObjectDeserializer())
           .create();
 

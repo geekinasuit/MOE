@@ -76,22 +76,22 @@ public abstract class DummyRevisionHistory implements RevisionHistory {
       if (commits().isEmpty()) {
         // if permissive, support legacy tests with an assumed revision.
         if (permissive()) {
-          return Revision.create("1", name());
+          return new Revision("1", name());
         } else {
           return null;
         }
       } else {
         // Construct head revision from head commit.
-        return Revision.create(Iterables.getLast(commits()).id(), name());
+        return new Revision(Iterables.getLast(commits()).id(), name());
       }
     }
 
     if (indexedCommits().containsKey(revId)) {
-      return Revision.create(revId, name());
+      return new Revision(revId, name());
     }
 
     // if permissive, support legacy tests with an assumed revision.
-    return (permissive()) ? Revision.create(revId, name()) : null;
+    return (permissive()) ? new Revision(revId, name()) : null;
   }
 
   @Override
@@ -114,7 +114,7 @@ public abstract class DummyRevisionHistory implements RevisionHistory {
           commit
               .parents()
               .stream()
-              .map(input -> Revision.create(input.id(), name()))
+              .map(input -> new Revision(input.id(), name()))
               .collect(toImmutableList());
       return RevisionMetadata.builder()
           .id(commit.id())
@@ -134,7 +134,7 @@ public abstract class DummyRevisionHistory implements RevisionHistory {
               revision.revId().equals("migrated_to")
                   ? "MOE_MIGRATED_REVID=migrated_from"
                   : "description")
-          .withParents(Revision.create("parent", name()))
+          .withParents(new Revision("parent", name()))
           .build();
     }
     return null;
@@ -159,13 +159,13 @@ public abstract class DummyRevisionHistory implements RevisionHistory {
   @Override
   public <T> T findRevisions(Revision revision, RevisionMatcher<T> matcher, SearchType searchType) {
     if (revision == null) {
-      revision = Revision.create("migrated_to", name());
+      revision = new Revision("migrated_to", name());
     }
     RevisionGraph revTree =
         RevisionGraph.builder(ImmutableList.of(revision))
             .addRevision(revision, getMetadata(revision))
             .build();
-    return matcher.makeResult(revTree, ImmutableList.of(Revision.create(1, name())));
+    return matcher.makeResult(revTree, ImmutableList.of(new Revision(1, name())));
   }
 
   public static Builder builder() {

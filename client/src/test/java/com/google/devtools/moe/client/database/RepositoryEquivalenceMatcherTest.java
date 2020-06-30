@@ -17,22 +17,27 @@
 package com.google.devtools.moe.client.database;
 
 import com.google.common.collect.ImmutableList;
-import com.google.devtools.moe.client.GsonModule;
 import com.google.devtools.moe.client.InvalidProject;
+import com.google.devtools.moe.client.MoshiModule;
 import com.google.devtools.moe.client.repositories.Revision;
 import com.google.devtools.moe.client.repositories.RevisionGraph;
 import com.google.devtools.moe.client.repositories.RevisionMetadata;
 
+import com.squareup.moshi.Moshi;
+import java.io.IOException;
 import junit.framework.TestCase;
 
 import org.joda.time.DateTime;
 
 import java.util.List;
 
+import static com.google.common.truth.Truth.assertThat;
+
 /**
  * Unit tests for EquivalenceMatcher
  */
 public class RepositoryEquivalenceMatcherTest extends TestCase {
+  private static Moshi moshi = MoshiModule.provideMoshi();
   /*
    * A database that holds the following equivalences:
    * repo1{1001} == repo2{1}
@@ -40,20 +45,20 @@ public class RepositoryEquivalenceMatcherTest extends TestCase {
    */
   private final String testDb1 =
       "{\"equivalences\":["
-          + "{\"rev1\": {\"revId\":\"1001\",\"repositoryName\":\"repo1\"},"
-          + " \"rev2\": {\"revId\":\"1\",\"repositoryName\":\"repo2\"}},"
-          + "{\"rev1\": {\"revId\":\"1002\",\"repositoryName\":\"repo1\"},"
-          + " \"rev2\": {\"revId\":\"2\",\"repositoryName\":\"repo2\"}}]}";
+          + "{\"rev1\": {\"rev_id\":\"1001\",\"repository_name\":\"repo1\"},"
+          + " \"rev2\": {\"rev_id\":\"1\",\"repository_name\":\"repo2\"}},"
+          + "{\"rev1\": {\"rev_id\":\"1002\",\"repository_name\":\"repo1\"},"
+          + " \"rev2\": {\"rev_id\":\"2\",\"repository_name\":\"repo2\"}}]}";
 
   private FileDb database;
   private RepositoryEquivalenceMatcher matcher;
 
   @Override
-  public void setUp() {
+  public void setUp() throws Exception {
     try {
-      DbStorage dbStorage = GsonModule.provideGson().fromJson(testDb1, DbStorage.class);
+      DbStorage dbStorage = moshi.adapter(DbStorage.class).failOnUnknown().fromJson(testDb1);
       database = new FileDb(null, dbStorage, null);
-    } catch (InvalidProject e) {
+    } catch (InvalidProject | IOException e) {
       e.printStackTrace();
       throw e;
     }
@@ -61,14 +66,14 @@ public class RepositoryEquivalenceMatcherTest extends TestCase {
   }
 
   public void testMatches() throws Exception {
-    assertTrue(matcher.matches(Revision.create(1001, "repo1")));
-    assertTrue(matcher.matches(Revision.create(1002, "repo1")));
-    assertFalse(matcher.matches(Revision.create(1003, "repo1")));
+    assertTrue(matcher.matches(new Revision(1001, "repo1")));
+    assertTrue(matcher.matches(new Revision(1002, "repo1")));
+    assertFalse(matcher.matches(new Revision(1003, "repo1")));
   }
 
   public void testMakeResult() throws Exception {
-    Revision startingRev = Revision.create(1003, "repo1");
-    List<Revision> matching = ImmutableList.of(Revision.create(1002, "repo1"));
+    Revision startingRev = new Revision(1003, "repo1");
+    List<Revision> matching = ImmutableList.of(new Revision(1002, "repo1"));
     RevisionGraph nonMatching =
         RevisionGraph.builder(matching)
             .addRevision(
@@ -86,8 +91,9 @@ public class RepositoryEquivalenceMatcherTest extends TestCase {
     assertEquals(nonMatching, result.getRevisionsSinceEquivalence());
 
     RepositoryEquivalence expectedEquiv =
-        RepositoryEquivalence.create(
-            Revision.create(2, "repo2"), Revision.create(1002, "repo1"));
-    assertEquals(expectedEquiv, result.getEquivalences().get(0));
+        new RepositoryEquivalence(
+            new Revision(2, "repo2"), new Revision(1002, "repo1"));
+    assertThat(result.getEquivalences()).hasSize(1);
+    assertThat(result.getEquivalences().get(0)).isEqualTo(expectedEquiv);
   }
 }

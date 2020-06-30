@@ -70,7 +70,7 @@ public class GitRevisionHistory extends AbstractRevisionHistory {
     } catch (CommandException e) {
       throw new MoeProblem(e, "Failed git log run: %d %s %s", e.returnStatus, e.stdout, e.stderr);
     }
-    return Revision.create(hashID, headClone.getRepositoryName());
+    return new Revision(hashID, headClone.getRepositoryName());
   }
 
   /**
@@ -126,7 +126,7 @@ public class GitRevisionHistory extends AbstractRevisionHistory {
     // The fourth item contains all of the parents, each separated by a space.
     ImmutableList.Builder<Revision> parentBuilder = ImmutableList.<Revision>builder();
     for (String parent : Splitter.on(' ').omitEmptyStrings().split(split.get(3))) {
-      parentBuilder.add(Revision.create(parent, headCloneSupplier.get().getRepositoryName()));
+      parentBuilder.add(new Revision(parent, headCloneSupplier.get().getRepositoryName()));
     }
 
     DateTime date = GIT_DATE_FMT.parseDateTime(split.get(2));

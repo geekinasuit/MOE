@@ -89,7 +89,7 @@ public class HgRevisionHistory extends AbstractRevisionHistory {
           e, "Failed hg run: %s %d %s %s", args, e.returnStatus, e.stdout, e.stderr);
     }
 
-    return Revision.create(changesetID, tipClone.getRepositoryName());
+    return new Revision(changesetID, tipClone.getRepositoryName());
   }
 
   /**
@@ -167,7 +167,7 @@ public class HgRevisionHistory extends AbstractRevisionHistory {
         String[] parentParts = parent.split(":");
         if (!parentParts[0].equals("-1")) {
           parent = parentParts[1];
-          parentBuilder.add(Revision.create(parent, tipCloneSupplier.get().getRepositoryName()));
+          parentBuilder.add(new Revision(parent, tipCloneSupplier.get().getRepositoryName()));
         }
       }
     }
@@ -202,7 +202,7 @@ public class HgRevisionHistory extends AbstractRevisionHistory {
     ImmutableList.Builder<Revision> result = ImmutableList.<Revision>builder();
     for (String changesetIDAndBranch : Splitter.on('\n').omitEmptyStrings().split(heads)) {
       String changesetID = changesetIDAndBranch.split(" ")[0];
-      result.add(Revision.create(changesetID, tipClone.getRepositoryName()));
+      result.add(new Revision(changesetID, tipClone.getRepositoryName()));
     }
     return result.build();
   }

@@ -398,7 +398,7 @@ public class MigrateBranchDirective extends Directive {
         if (!commitsInParentBranch.contains(revision.revId())) {
           commitsInParentBranch.add(revision.revId());
           RevisionMetadata metadata =
-              parentBranch.getMetadata(Revision.create(revision.revId(), parentRepositoryName));
+              parentBranch.getMetadata(new Revision(revision.revId(), parentRepositoryName));
           if (metadata == null) {
             throw new MoeProblem("Could not load revision metadata for %s", revision);
           }
@@ -431,7 +431,7 @@ public class MigrateBranchDirective extends Directive {
 
     return commitsNotInDestinationBranch
         .stream()
-        .map(revId -> Revision.create(revId, repositoryName))
+        .map(revId -> new Revision(revId, repositoryName))
         .collect(toImmutableList())
         .reverse();
   }

@@ -100,7 +100,7 @@ public class PublicSectionMetadataScrubberTest extends TestCase {
             .author("author@google.com")
             .date(new DateTime(1L))
             .description(Joiner.on("\n").join(description))
-            .withParents(Revision.create("parentId1", "repo"), Revision.create("parentId2", "repo"))
+            .withParents(new Revision("parentId1", "repo"), new Revision("parentId2", "repo"))
             .build();
     return parseLegacyFields(unparsed);
   }

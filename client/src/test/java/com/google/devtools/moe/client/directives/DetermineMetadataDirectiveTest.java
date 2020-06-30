@@ -64,7 +64,7 @@ public class DetermineMetadataDirectiveTest extends TestCase {
             .date(new DateTime(1L))
             .description("description\n\n-------------\ndescription")
             .withParents(
-                Revision.create("parent", "internal"), Revision.create("parent", "internal"))
+                new Revision("parent", "internal"), new Revision("parent", "internal"))
             .build();
 
     assertThat(stream.toString().trim()).isEqualTo(expected.toString().trim());
@@ -90,7 +90,7 @@ public class DetermineMetadataDirectiveTest extends TestCase {
             .author("author")
             .date(new DateTime(1L))
             .description("description")
-            .withParents(Revision.create("parent", "internal"))
+            .withParents(new Revision("parent", "internal"))
             .build();
 
     assertThat(stream.toString().trim()).isEqualTo(rm.toString().trim());

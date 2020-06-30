@@ -122,7 +122,7 @@ public class SvnRevisionHistoryTest extends TestCase {
     assertEquals("uid@google.com", rs.get(0).author());
     assertThat(rs.get(0).date()).isEquivalentAccordingToCompareTo(DATE);
     assertEquals("description", rs.get(0).description());
-    assertEquals(ImmutableList.of(Revision.create(1, "internal_svn")), rs.get(0).parents());
+    assertEquals(ImmutableList.of(new Revision(1, "internal_svn")), rs.get(0).parents());
     assertEquals("1", rs.get(1).id());
     assertEquals("user@google.com", rs.get(1).author());
     assertThat(rs.get(1).date()).isEquivalentAccordingToCompareTo(DATE);
@@ -164,12 +164,12 @@ public class SvnRevisionHistoryTest extends TestCase {
     control.replay();
     SvnRevisionHistory history =
         new SvnRevisionHistory("internal_svn", "http://foo/svn/trunk/", util);
-    RevisionMetadata result = history.getMetadata(Revision.create(3, "internal_svn"));
+    RevisionMetadata result = history.getMetadata(new Revision(3, "internal_svn"));
     assertEquals("3", result.id());
     assertEquals("uid@google.com", result.author());
     assertThat(result.date()).isEquivalentAccordingToCompareTo(DATE);
     assertEquals("message", result.description());
-    assertEquals(ImmutableList.of(Revision.create(2, "internal_svn")), result.parents());
+    assertEquals(ImmutableList.of(new Revision(2, "internal_svn")), result.parents());
     control.verify();
   }
 
@@ -212,7 +212,7 @@ public class SvnRevisionHistoryTest extends TestCase {
         history.parseMetadataNodeList(
             "7",
             doc.getElementsByTagName("logentry").item(0).getChildNodes(),
-            ImmutableList.of(Revision.create(6, "internal")));
+            ImmutableList.of(new Revision(6, "internal")));
 
     RevisionMetadata expected =
         RevisionMetadata.builder()
@@ -220,7 +220,7 @@ public class SvnRevisionHistoryTest extends TestCase {
             .author("user")
             .date(DATE)
             .description("description")
-            .withParents(Revision.create(6, "internal"))
+            .withParents(new Revision(6, "internal"))
             .build();
 
     assertThat(result).isEqualTo(expected);
@@ -335,8 +335,8 @@ public class SvnRevisionHistoryTest extends TestCase {
    */
   private final String testDb1 =
       "{\"equivalences\":["
-          + "{\"rev1\": {\"revId\":\"1002\",\"repositoryName\":\"repo1\"},"
-          + " \"rev2\": {\"revId\":\"2\",\"repositoryName\":\"repo2\"}}]}";
+          + "{\"rev1\": {\"rev_id\":\"1002\",\"repository_name\":\"repo1\"},"
+          + " \"rev2\": {\"rev_id\":\"2\",\"repository_name\":\"repo2\"}}]}";
 
   /**
    * A test for finding the last equivalence for the following history starting
@@ -428,15 +428,15 @@ public class SvnRevisionHistoryTest extends TestCase {
 
     Result result =
         history.findRevisions(
-            Revision.create(4, "repo2"),
+            new Revision(4, "repo2"),
             new RepositoryEquivalenceMatcher("repo1", database),
             SearchType.LINEAR);
 
     control.verify();
 
     RepositoryEquivalence expectedEq =
-        RepositoryEquivalence.create(
-            Revision.create(1002, "repo1"), Revision.create(2, "repo2"));
+        new RepositoryEquivalence(
+            new Revision(1002, "repo1"), new Revision(2, "repo2"));
 
     assertEquals(1, result.getEquivalences().size());
     assertEquals(expectedEq, result.getEquivalences().get(0));
@@ -448,8 +448,8 @@ public class SvnRevisionHistoryTest extends TestCase {
    */
   private final String testDb2 =
       "{\"equivalences\":["
-          + "{\"rev1\": {\"revId\":\"1003\",\"repositoryName\":\"repo1\"},"
-          + " \"rev2\": {\"revId\":\"3\",\"repositoryName\":\"repo2\"}}]}";
+          + "{\"rev1\": {\"rev_id\":\"1003\",\"repository_name\":\"repo1\"},"
+          + " \"rev2\": {\"rev_id\":\"3\",\"repository_name\":\"repo2\"}}]}";
 
   /**
    * A test for finding the last equivalence for the following history starting
@@ -535,7 +535,7 @@ public class SvnRevisionHistoryTest extends TestCase {
 
     Result result =
         history.findRevisions(
-            Revision.create(2, "repo2"),
+            new Revision(2, "repo2"),
             new RepositoryEquivalenceMatcher("repo1", database),
             SearchType.LINEAR);
 

@@ -48,6 +48,7 @@ import javax.inject.Singleton;
     ExpressionModule.class,
     FileDb.Module.class,
     GsonModule.class,
+    MoshiModule.class,
     MetadataScrubber.Module.class,
     MoeModule.ExecutableModule.class,
     OptionsModule.class,

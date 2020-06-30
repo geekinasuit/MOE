@@ -76,7 +76,7 @@ public class SvnWriterCreatorTest extends TestCase {
     expect(mockConfig.getProjectSpace()).andReturn("internal").anyTimes();
     expect(mockConfig.getIgnoreFilePatterns()).andReturn(ImmutableList.<String>of()).anyTimes();
 
-    Revision result = Revision.create(45, "");
+    Revision result = new Revision(45, "");
     expect(fileSystem.getTemporaryDirectory("svn_writer_45_"))
         .andReturn(new File("/dummy/path/45"));
     expect(revisionHistory.findHighestRevision("45")).andReturn(result);

@@ -29,6 +29,8 @@ import com.google.devtools.moe.client.repositories.Revision;
 import com.google.devtools.moe.client.testing.DummyDb;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
+import com.squareup.moshi.JsonAdapter;
+import com.squareup.moshi.Moshi;
 import dagger.Provides;
 import java.io.File;
 import java.io.IOException;
@@ -79,7 +81,7 @@ public class FileDb implements Db, HasDbStorage {
     ImmutableSet.Builder<Revision> equivalentToRevision = ImmutableSet.builder();
     for (RepositoryEquivalence e : dbStorage.equivalences()) {
       if (e.hasRevision(revision)) {
-        Revision otherRevision = e.getOtherRevision(revision);
+        Revision otherRevision = e.get(revision);
         if (otherRevision.repositoryName().equals(otherRepository)) {
           equivalentToRevision.add(otherRevision);
         }
@@ -120,12 +122,12 @@ public class FileDb implements Db, HasDbStorage {
    * location, or at the location originally attached to the database.
    */
   public static class Writer {
-    private final Gson gson;
+    private final Moshi moshi;
     private final FileSystem filesystem;
 
     @Inject
-    public Writer(Gson gson, FileSystem filesystem) {
-      this.gson = gson;
+    public Writer(Moshi moshi, FileSystem filesystem) {
+      this.moshi = moshi;
       this.filesystem = filesystem;
     }
 
@@ -133,7 +135,8 @@ public class FileDb implements Db, HasDbStorage {
       if (db instanceof HasDbStorage) {
         try {
           DbStorage storage = ((HasDbStorage) db).getStorage();
-          filesystem.write(gson.toJson(storage) + "\n", new File(db.location()));
+          String json = moshi.adapter(DbStorage.class).indent("  ").toJson(storage) + "\n";
+          filesystem.write(json, new File(db.location()));
         } catch (IOException e) {
           throw new MoeProblem(e, "I/O Error writing database");
         }
@@ -145,13 +148,13 @@ public class FileDb implements Db, HasDbStorage {
 
   /** A Factory to produce {@link FileDb} instances. */
   static class Factory {
-    private final Gson gson;
+    private final Moshi moshi;
     private final FileSystem filesystem;
 
     @Inject
-    Factory(FileSystem filesystem, Gson gson) {
+    Factory(FileSystem filesystem, Moshi moshi) {
       this.filesystem = filesystem;
-      this.gson = gson;
+      this.moshi = moshi;
     }
 
     FileDb load(Path location) throws MoeProblem, InvalidProject {
@@ -159,14 +162,15 @@ public class FileDb implements Db, HasDbStorage {
         if (filesystem.exists(location.toFile())) {
           String dbText = filesystem.fileToString(location.toFile());
           try {
-            DbStorage dbStorage = gson.fromJson(dbText, DbStorage.class);
-            return new FileDb(location.toString(), dbStorage, new FileDb.Writer(gson, filesystem));
+            JsonAdapter<DbStorage> adapter = moshi.adapter(DbStorage.class);
+            DbStorage dbStorage = adapter.fromJson(dbText);
+            return new FileDb(location.toString(), dbStorage, new FileDb.Writer(moshi, filesystem));
           } catch (JsonParseException e) {
             throw new InvalidProject("Could not parse MOE DB: " + e.getMessage());
           }
         } else {
           return new FileDb(
-              location.toString(), new DbStorage(), new FileDb.Writer(gson, filesystem));
+              location.toString(), new DbStorage(), new FileDb.Writer(moshi, filesystem));
         }
       } catch (IOException e) {
         throw new MoeProblem(e, "Could not load %s", location);

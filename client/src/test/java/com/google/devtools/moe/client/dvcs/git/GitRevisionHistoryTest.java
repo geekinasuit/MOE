@@ -137,13 +137,13 @@ public class GitRevisionHistoryTest extends TestCase {
     control.replay();
 
     GitRevisionHistory rh = new GitRevisionHistory(Suppliers.ofInstance(mockRepo));
-    RevisionMetadata result = rh.getMetadata(Revision.create(1, "mockrepo"));
+    RevisionMetadata result = rh.getMetadata(new Revision(1, "mockrepo"));
     assertEquals("1", result.id());
     assertEquals("foo@google.com", result.author());
     assertThat(result.date()).isEquivalentAccordingToCompareTo(DATE);
     assertEquals("description\n", result.description());
     assertThat(result.parents())
-        .containsExactly(Revision.create(2, repositoryName), Revision.create(3, repositoryName))
+        .containsExactly(new Revision(2, repositoryName), new Revision(3, repositoryName))
         .inOrder();
 
     control.verify();
@@ -169,7 +169,7 @@ public class GitRevisionHistoryTest extends TestCase {
     assertThat(rm.date()).isEquivalentAccordingToCompareTo(DATE);
     assertEquals("desc with \n\nmultiple lines\n", rm.description());
     assertThat(rm.parents())
-        .containsExactly(Revision.create(2, repositoryName), Revision.create(3, repositoryName))
+        .containsExactly(new Revision(2, repositoryName), new Revision(3, repositoryName))
         .inOrder();
   }
 
@@ -270,8 +270,8 @@ public class GitRevisionHistoryTest extends TestCase {
    */
   private final String testDb1 =
       "{\"equivalences\":["
-          + "{\"rev1\": {\"revId\":\"1002\",\"repositoryName\":\"repo1\"},"
-          + " \"rev2\": {\"revId\":\"2\",\"repositoryName\":\"repo2\"}}]}";
+          + "{\"rev1\": {\"rev_id\":\"1002\",\"repository_name\":\"repo1\"},"
+          + " \"rev2\": {\"rev_id\":\"2\",\"repository_name\":\"repo2\"}}]}";
 
   /**
    * A test for finding the last equivalence for the following history starting
@@ -321,13 +321,13 @@ public class GitRevisionHistoryTest extends TestCase {
 
     Result result =
         history.findRevisions(
-            Revision.create(4, "repo2"),
+            new Revision(4, "repo2"),
             new RepositoryEquivalenceMatcher("repo1", database),
             SearchType.BRANCHED);
 
     RepositoryEquivalence expectedEq =
-        RepositoryEquivalence.create(
-            Revision.create(1002, "repo1"), Revision.create(2, "repo2"));
+        new RepositoryEquivalence(
+            new Revision(1002, "repo1"), new Revision(2, "repo2"));
 
     assertThat(result.getEquivalences()).hasSize(1);
     assertEquals(expectedEq, result.getEquivalences().get(0));
@@ -341,8 +341,8 @@ public class GitRevisionHistoryTest extends TestCase {
    */
   private final String testDb2 =
       "{\"equivalences\":["
-          + "{\"rev1\": {\"revId\":\"1005\",\"repositoryName\":\"repo1\"},"
-          + " \"rev2\": {\"revId\":\"5\",\"repositoryName\":\"repo2\"}}]}";
+          + "{\"rev1\": {\"rev_id\":\"1005\",\"repository_name\":\"repo1\"},"
+          + " \"rev2\": {\"rev_id\":\"5\",\"repository_name\":\"repo2\"}}]}";
 
   /**
    * A test for finding the last equivalence for the following history starting
@@ -402,7 +402,7 @@ public class GitRevisionHistoryTest extends TestCase {
 
     Result result =
         history.findRevisions(
-            Revision.create(4, "repo2"),
+            new Revision(4, "repo2"),
             new RepositoryEquivalenceMatcher("repo1", database),
             SearchType.BRANCHED);
 
@@ -460,16 +460,16 @@ public class GitRevisionHistoryTest extends TestCase {
 
     Result result =
         history.findRevisions(
-            Revision.create(4, "repo2"),
+            new Revision(4, "repo2"),
             new RepositoryEquivalenceMatcher("repo1", database),
             SearchType.LINEAR);
 
     RepositoryEquivalence expectedEq =
-        RepositoryEquivalence.create(
-            Revision.create(1002, "repo1"), Revision.create(2, "repo2"));
+        new RepositoryEquivalence(
+            new Revision(1002, "repo1"), new Revision(2, "repo2"));
 
     assertThat(result.getRevisionsSinceEquivalence().getBreadthFirstHistory())
-        .containsExactly(Revision.create(4, "repo2"), Revision.create("3a", "repo2"))
+        .containsExactly(new Revision(4, "repo2"), new Revision("3a", "repo2"))
         .inOrder();
     assertThat(result.getEquivalences()).containsExactly(expectedEq);
 

@@ -145,7 +145,7 @@ public class MagicDirective extends Directive {
           targetRepositoryPointOfEquivalency =
               targetRepositoryPointOfEquivalency.atRevision(
                   lastRecordedEquivalence
-                      .getRevisionForRepository(migrationConfig.getToRepository())
+                      .get(migrationConfig.getToRepository())
                       .revId());
         }
 

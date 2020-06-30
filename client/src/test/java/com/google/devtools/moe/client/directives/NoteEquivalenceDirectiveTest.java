@@ -92,7 +92,7 @@ public class NoteEquivalenceDirectiveTest extends TestCase {
 
     DbStorage expectedStorage = new DbStorage();
     expectedStorage.addEquivalence(
-        RepositoryEquivalence.create(Revision.create(1, "internal"), Revision.create(4, "public")));
+        new RepositoryEquivalence(new Revision(1, "internal"), new Revision(4, "public")));
     assertThat(dbStorage).isEqualTo(expectedStorage);
   }
 
@@ -101,7 +101,7 @@ public class NoteEquivalenceDirectiveTest extends TestCase {
     d.repo2 = "public(revision=4)";
 
     dbStorage.addEquivalence(
-        RepositoryEquivalence.create(Revision.create(0, "internal"), Revision.create(3, "public")));
+        new RepositoryEquivalence(new Revision(0, "internal"), new Revision(3, "public")));
 
     dbWriter.write(db);
     expectLastCall();
@@ -112,9 +112,9 @@ public class NoteEquivalenceDirectiveTest extends TestCase {
 
     DbStorage expectedStorage = new DbStorage();
     expectedStorage.addEquivalence(
-        RepositoryEquivalence.create(Revision.create(0, "internal"), Revision.create(3, "public")));
+        new RepositoryEquivalence(new Revision(0, "internal"), new Revision(3, "public")));
     expectedStorage.addEquivalence(
-        RepositoryEquivalence.create(Revision.create(1, "internal"), Revision.create(4, "public")));
+        new RepositoryEquivalence(new Revision(1, "internal"), new Revision(4, "public")));
     assertThat(dbStorage).isEqualTo(expectedStorage);
   }
 }
