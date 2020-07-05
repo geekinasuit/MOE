@@ -19,6 +19,7 @@ import com.google.devtools.moe.client.Ui.UiModule;
 import com.google.devtools.moe.client.codebase.ExpressionModule;
 import com.google.devtools.moe.client.database.FileDb;
 import com.google.devtools.moe.client.directives.Directives;
+import com.google.devtools.moe.client.moshi.MoshiModule;
 import com.google.devtools.moe.client.options.OptionsModule;
 import com.google.devtools.moe.client.project.FileReadingProjectContextFactory;
 import com.google.devtools.moe.client.config.ProjectConfig;
@@ -47,7 +48,6 @@ import javax.inject.Singleton;
     Editors.Defaults.class,
     ExpressionModule.class,
     FileDb.Module.class,
-    GsonModule.class,
     MoshiModule.class,
     MetadataScrubber.Module.class,
     MoeModule.ExecutableModule.class,

@@ -51,12 +51,7 @@ public class DescriptionMetadataScrubberTest extends TestCase {
         new DescriptionMetadataScrubber()
             .scrub(
                 REVISION_METADATA,
-                new MetadataScrubberConfig() {
-                  @Override
-                  public String getLogFormat() {
-                    return "{description}!!!";
-                  }
-                });
+                MetadataScrubberConfig.createFakeWithLogFormat( "{description}!!!"));
     assertThat(rmActual).isEqualTo(rmExpected);
   }
 
@@ -71,13 +66,7 @@ public class DescriptionMetadataScrubberTest extends TestCase {
   }
 
   private void assertFormatResults(final String format, String expectedOutput) {
-    MetadataScrubberConfig config =
-        new MetadataScrubberConfig() {
-          @Override
-          public String getLogFormat() {
-            return format;
-          }
-        };
+    MetadataScrubberConfig config = MetadataScrubberConfig.createFakeWithLogFormat(format);
     assertWithMessage("Unexpected scrubbing output for format '%s'", format)
         .that(new DescriptionMetadataScrubber().scrub(REVISION_METADATA, config).description())
         .isEqualTo(expectedOutput);

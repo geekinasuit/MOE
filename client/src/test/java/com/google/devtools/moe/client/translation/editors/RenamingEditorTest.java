@@ -22,15 +22,14 @@ import static org.easymock.EasyMock.expect;
 import com.google.common.collect.ImmutableMap;
 import com.google.devtools.moe.client.FileSystem;
 import com.google.devtools.moe.client.MoeProblem;
+import com.google.devtools.moe.client.moshi.MoshiModule;
 import com.google.devtools.moe.client.codebase.Codebase;
 import com.google.devtools.moe.client.codebase.expressions.RepositoryExpression;
-import com.google.devtools.moe.client.GsonModule;
 import com.google.devtools.moe.client.config.EditorConfig;
 import com.google.devtools.moe.client.config.ScrubberConfig;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.squareup.moshi.Moshi;
 import java.io.File;
+import java.io.IOException;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
@@ -38,8 +37,10 @@ import org.easymock.IMocksControl;
 public class RenamingEditorTest extends TestCase {
   private final IMocksControl control = EasyMock.createControl();
   private final FileSystem fileSystem = control.createMock(FileSystem.class);
-  private final Gson gson = GsonModule.provideGson();
-  private final ScrubberConfig scrubberConfig = gson.fromJson("{}", ScrubberConfig.class);
+  private final Moshi moshi = MoshiModule.provideMoshi();
+  private final ScrubberConfig scrubberConfig = moshi.adapter(ScrubberConfig.class).fromJson("{}");
+
+  public RenamingEditorTest() throws IOException {}
 
   public void testRenameFile_NoRegex() throws Exception {
     String mappings =
@@ -48,8 +49,8 @@ public class RenamingEditorTest extends TestCase {
             + "\"olddir\": \"newdir\","
             + "\".*\": \"ineffectual_regex\""
             + "}";
-    EditorConfig config = EditorConfig.create(renamer, scrubberConfig, "", parse(mappings), false);
-    RenamingEditor renamer = new RenamingEditor(fileSystem, gson, "renamey", config);
+    EditorConfig config = new EditorConfig(renamer, scrubberConfig, "", mappings, false);
+    RenamingEditor renamer = new RenamingEditor(fileSystem, moshi, "renamey", config);
 
     // Leading '/' should be trimmed.
     assertEquals("tmp/newdir/foo/bar.txt", renamer.renameFile("/tmp/olddir/foo/bar.txt"));
@@ -67,8 +68,8 @@ public class RenamingEditorTest extends TestCase {
   public void testRenameFile_Regex() throws Exception {
     String mappings =
         "{" + "\"/old([^/]*)\": \"/brand/new$1\"," + "\"fuzzy/wuzzy\": \"buzzy\"" + "}";
-    EditorConfig config = EditorConfig.create(renamer, scrubberConfig, "", parse(mappings), true);
-    RenamingEditor renamer = new RenamingEditor(fileSystem, gson, "renamey", config);
+    EditorConfig config = new EditorConfig(renamer, scrubberConfig, "", mappings, true);
+    RenamingEditor renamer = new RenamingEditor(fileSystem, moshi, "renamey", config);
 
     assertEquals("tmp/brand/newdir/foo/bar.txt", renamer.renameFile("/tmp/olddir/foo/bar.txt"));
 
@@ -88,8 +89,8 @@ public class RenamingEditorTest extends TestCase {
     File src = new File("/src");
     File dest = new File("/dest");
     String mappings = "{\"olddummy\": \"newdummy\"}";
-    EditorConfig config = EditorConfig.create(renamer, scrubberConfig, "", parse(mappings), false);
-    RenamingEditor renamer = new RenamingEditor(fileSystem, gson, "renamey", config);
+    EditorConfig config = new EditorConfig(renamer, scrubberConfig, "", mappings, false);
+    RenamingEditor renamer = new RenamingEditor(fileSystem, moshi, "renamey", config);
 
     expect(fileSystem.isDirectory(src)).andReturn(true);
     expect(fileSystem.listFiles(src)).andReturn(new File[] {new File("/src/olddummy")});
@@ -131,15 +132,10 @@ public class RenamingEditorTest extends TestCase {
     control.replay();
 
     String mappings = "{\"moe\": \"joe\"}";
-    EditorConfig config = EditorConfig.create(renamer, scrubberConfig, "", parse(mappings), false);
-    new RenamingEditor(fileSystem, gson, "renamey", config)
+    EditorConfig config = new EditorConfig(renamer, scrubberConfig, "", mappings, false);
+    new RenamingEditor(fileSystem, moshi, "renamey", config)
         .edit(codebase, ImmutableMap.<String, String>of());
 
     control.verify();
-  }
-
-  private JsonObject parse(String json) {
-    JsonObject mappings = new JsonParser().parse(json).getAsJsonObject();
-    return mappings;
   }
 }

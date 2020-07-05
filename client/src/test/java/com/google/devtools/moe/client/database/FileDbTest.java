@@ -25,7 +25,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.devtools.moe.client.FileSystem;
-import com.google.devtools.moe.client.MoshiModule;
+import com.google.devtools.moe.client.moshi.MoshiModule;
 import com.google.devtools.moe.client.SystemFileSystem;
 import com.google.devtools.moe.client.InvalidProject;
 import com.google.devtools.moe.client.repositories.Revision;

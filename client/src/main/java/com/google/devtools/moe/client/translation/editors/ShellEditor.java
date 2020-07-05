@@ -50,7 +50,7 @@ public class ShellEditor implements Editor {
     this.cmd = cmd;
     this.filesystem = filesystem;
     this.name = name;
-    this.commandString = config.commandString();
+    this.commandString = config.getCommandString();
   }
 
   /**

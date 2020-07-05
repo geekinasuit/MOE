@@ -25,14 +25,14 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.reflect.TypeToken;
 import com.google.devtools.moe.client.FileSystem;
 import com.google.devtools.moe.client.MoeProblem;
 import com.google.devtools.moe.client.Utils;
 import com.google.devtools.moe.client.codebase.Codebase;
 import com.google.devtools.moe.client.config.EditorConfig;
 import com.google.devtools.moe.client.InvalidProject;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.squareup.moshi.Moshi;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -58,23 +58,29 @@ public class RenamingEditor implements Editor, InverseEditor {
   private final boolean useRegex;
 
   RenamingEditor(
-      @Provided FileSystem filesystem, @Provided Gson gson, String name, EditorConfig config) {
+      @Provided FileSystem filesystem, @Provided Moshi moshi, String name, EditorConfig config) {
     this.filesystem = filesystem;
     this.editorName = name;
-    if (config.mappings() == null) {
+    if (config.getMappings().isEmpty()) {
       throw new MoeProblem("No mappings object found in the config for editor %s", editorName);
     }
-    regexMappings = mappingsFromConfig(gson, config);
-    this.useRegex = config.useRegex();
+    try {
+      regexMappings = mappingsFromConfig(moshi, config);
+    } catch (IOException e) {
+      throw new InvalidProject("Unable to parse mappings for %s: %s", name, config.getMappings());
+    }
+    this.useRegex = config.getUseRegex();
   }
 
   /** Preprocesses the mappings from the given {@link EditorConfig}. */
-  private static Map<Pattern, String> mappingsFromConfig(Gson gson, EditorConfig config) {
-    Map<String, String> mappings = gson.fromJson(config.mappings(), MAP_TYPE);
+  private static Map<Pattern, String> mappingsFromConfig(Moshi moshi, EditorConfig config)
+  throws IOException {
+    Map<String, String> mappings =
+        (Map<String, String>) moshi.adapter(MAP_TYPE).fromJson(config.getMappings());
     ImmutableMap.Builder<Pattern, String> regexMappingsBuilder = ImmutableMap.builder();
     for (String mapping : mappings.keySet()) {
       regexMappingsBuilder.put(
-          Pattern.compile(config.useRegex() ? mapping : Pattern.quote(mapping)),
+          Pattern.compile(config.getUseRegex() ? mapping : Pattern.quote(mapping)),
           mappings.get(mapping));
     }
     return regexMappingsBuilder.build();

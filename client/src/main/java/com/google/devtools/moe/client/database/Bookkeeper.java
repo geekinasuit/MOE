@@ -249,8 +249,8 @@ public class Bookkeeper {
         bookkeepMigration(
             testedHeadEquivalences,
             config.getName(),
-            config.getFromRepository(),
-            config.getToRepository());
+            config.getFrom(),
+            config.getTo());
       }
     }
     db.write();

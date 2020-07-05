@@ -16,6 +16,7 @@
 
 package com.google.devtools.moe.client.dvcs.git;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -89,7 +90,8 @@ public class GitWriter extends AbstractDvcsWriter<GitClonedRepository> {
 
   @Override
   public void printPushMessage(Ui ui) {
-    String originalBranchName = revClone.getConfig().getBranch().or("master");
+    String originalBranchName =
+        Optional.fromNullable(revClone.getConfig().getBranch()).or("master");
     String moeBranchName;
     try {
       moeBranchName = revClone.runGitCommand("rev-parse", "--abbrev-ref", "HEAD").trim();

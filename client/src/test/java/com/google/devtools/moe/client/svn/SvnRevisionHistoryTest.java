@@ -17,6 +17,7 @@
 package com.google.devtools.moe.client.svn;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.devtools.moe.client.moshi.MoshiModule.provideMoshi;
 import static org.easymock.EasyMock.expect;
 
 import com.google.common.collect.ImmutableList;
@@ -27,7 +28,6 @@ import com.google.devtools.moe.client.database.FileDb;
 import com.google.devtools.moe.client.database.RepositoryEquivalence;
 import com.google.devtools.moe.client.database.RepositoryEquivalenceMatcher;
 import com.google.devtools.moe.client.database.RepositoryEquivalenceMatcher.Result;
-import com.google.devtools.moe.client.GsonModule;
 import com.google.devtools.moe.client.repositories.Revision;
 import com.google.devtools.moe.client.repositories.RevisionHistory.SearchType;
 import com.google.devtools.moe.client.repositories.RevisionMetadata;
@@ -423,7 +423,7 @@ public class SvnRevisionHistoryTest extends TestCase {
     control.replay();
 
     FileDb database =
-        new FileDb(null, GsonModule.provideGson().fromJson(testDb1, DbStorage.class), null);
+        new FileDb(null, provideMoshi().adapter(DbStorage.class).fromJson(testDb1), null);
     SvnRevisionHistory history = new SvnRevisionHistory("repo2", "http://foo/svn/trunk/", util);
 
     Result result =
@@ -530,7 +530,7 @@ public class SvnRevisionHistoryTest extends TestCase {
     control.replay();
 
     FileDb database =
-        new FileDb(null, GsonModule.provideGson().fromJson(testDb2, DbStorage.class), null);
+        new FileDb(null, provideMoshi().adapter(DbStorage.class).fromJson(testDb2), null);
     SvnRevisionHistory history = new SvnRevisionHistory("repo2", "http://foo/svn/trunk/", util);
 
     Result result =
@@ -538,9 +538,7 @@ public class SvnRevisionHistoryTest extends TestCase {
             new Revision(2, "repo2"),
             new RepositoryEquivalenceMatcher("repo1", database),
             SearchType.LINEAR);
-
+    assertThat(result.getEquivalences()).hasSize(0);
     control.verify();
-
-    assertEquals(0, result.getEquivalences().size());
   }
 }

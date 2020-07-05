@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Google, Inc.
+ * Copyright (c) 2011 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.moe.client.config;
+package com.google.devtools.moe.client.config
 
-import com.google.gson.TypeAdapterFactory;
-import com.ryanharter.auto.value.gson.GsonTypeAdapterFactory;
+import com.google.devtools.moe.client.InvalidProject
+import com.squareup.moshi.Json
 
-@GsonTypeAdapterFactory
-public abstract class ConfigTypeAdapterFactory implements TypeAdapterFactory {
-  public static TypeAdapterFactory create() {
-    return new AutoValueGson_ConfigTypeAdapterFactory();
+/** Configuration for a MOE Step. */
+data class StepConfig(
+  val name: String,
+
+  @Json(name = "editor")
+  val editorConfig: EditorConfig
+) : ValidatingConfig {
+
+  @Throws(InvalidProject::class)
+  override fun validate() {
+    InvalidProject.assertNotEmpty(name, "Missing name in step")
+    editorConfig.validate()
   }
 }

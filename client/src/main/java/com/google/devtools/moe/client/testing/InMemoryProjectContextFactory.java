@@ -16,12 +16,11 @@
 
 package com.google.devtools.moe.client.testing;
 
-import static com.google.devtools.moe.client.project.ProjectConfigs.parse;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.devtools.moe.client.Ui;
 import com.google.devtools.moe.client.codebase.ExpressionEngine;
 import com.google.devtools.moe.client.InvalidProject;
+import com.google.devtools.moe.client.config.ConfigParser;
 import com.google.devtools.moe.client.config.ProjectConfig;
 import com.google.devtools.moe.client.project.ProjectContextFactory;
 import com.google.devtools.moe.client.repositories.Repositories;
@@ -41,14 +40,18 @@ public class InMemoryProjectContextFactory extends ProjectContextFactory {
 
   @Inject
   public InMemoryProjectContextFactory(
-      ExpressionEngine expressionEngine, Ui ui, Repositories repositories) {
-    super(expressionEngine, ui, repositories, new Editors.Fake());
+      ExpressionEngine expressionEngine,
+      Ui ui,
+      Repositories repositories,
+      ConfigParser<ProjectConfig> configParser
+  ) {
+    super(expressionEngine, ui, repositories, new Editors.Fake(), configParser);
     projectConfigs = new HashMap<>();
   }
 
   @Override
   public ProjectConfig loadConfiguration(String configFilename) throws InvalidProject {
-    return parse(projectConfigs.get(configFilename));
+    return projectConfigParser.parse(projectConfigs.get(configFilename));
   }
 
   @Override

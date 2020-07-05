@@ -19,10 +19,8 @@ package com.google.devtools.moe.client.repositories;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.devtools.moe.client.testing.DummyRevisionHistory.parseLegacyFields;
 
-import com.google.common.collect.ImmutableList;
 import com.google.devtools.moe.client.config.MetadataScrubberConfig;
 
-import java.util.List;
 import junit.framework.TestCase;
 import org.joda.time.DateTime;
 
@@ -53,12 +51,7 @@ public class MetadataUsernameScrubberTest extends TestCase {
     RevisionMetadata after =
         mus.scrub(
             before,
-            new MetadataScrubberConfig() {
-              @Override
-              public List<String> getUsernamesToScrub() {
-                return ImmutableList.of("saget");
-              }
-            });
+            MetadataScrubberConfig.createFakeWithUsernames("saget"));
     assertThat(after).isEqualTo(expected);
   }
 
@@ -82,12 +75,8 @@ public class MetadataUsernameScrubberTest extends TestCase {
     RevisionMetadata after =
         mus.scrub(
             before,
-            new MetadataScrubberConfig() {
-              @Override
-              public List<String> getUsernamesToScrub() {
-                return ImmutableList.of("bob");
-              }
-            });
+            MetadataScrubberConfig.createFakeWithUsernames("bob"));
+
     assertThat(after).isEqualTo(expected);
   }
 
@@ -111,12 +100,8 @@ public class MetadataUsernameScrubberTest extends TestCase {
     RevisionMetadata after =
         mus.scrub(
             before,
-            new MetadataScrubberConfig() {
-              @Override
-              public List<String> getUsernamesToScrub() {
-                return ImmutableList.of("bob");
-              }
-            });
+            MetadataScrubberConfig.createFakeWithUsernames("bob"));
+
     assertThat(after).isEqualTo(expected);
   }
 
@@ -141,12 +126,8 @@ public class MetadataUsernameScrubberTest extends TestCase {
     RevisionMetadata after =
         mus.scrub(
             before,
-            new MetadataScrubberConfig() {
-              @Override
-              public List<String> getUsernamesToScrub() {
-                return ImmutableList.of("bob", "saget");
-              }
-            });
+            MetadataScrubberConfig.createFakeWithUsernames("bob", "saget"));
+
     assertThat(after).isEqualTo(expected);
   }
 
@@ -171,12 +152,8 @@ public class MetadataUsernameScrubberTest extends TestCase {
     RevisionMetadata after =
         mus.scrub(
             before,
-            new MetadataScrubberConfig() {
-              @Override
-              public List<String> getUsernamesToScrub() {
-                return ImmutableList.of("bob", "saget");
-              }
-            });
+            MetadataScrubberConfig.createFakeWithUsernames("bob", "saget"));
+
     assertThat(after).isEqualTo(expected);
   }
 }

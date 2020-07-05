@@ -42,10 +42,9 @@ public class SvnCodebaseCreatorTest extends TestCase {
     Revision result = new Revision(45, "");
     SvnRevisionHistory revisionHistory = control.createMock(SvnRevisionHistory.class);
 
-    RepositoryConfig mockConfig = control.createMock(RepositoryConfig.class);
-    expect(mockConfig.getUrl()).andReturn("http://foo/svn/trunk/").anyTimes();
-    expect(mockConfig.getProjectSpace()).andReturn("internal").anyTimes();
-    expect(mockConfig.getIgnoreFilePatterns()).andReturn(ImmutableList.<String>of()).anyTimes();
+    RepositoryConfig config = RepositoryConfig.fakeRepositoryConfig()
+        .copyWithUrl("http://foo/svn/trunk/")
+        .copyWithProjectSpace("internal");
 
     expect(revisionHistory.findHighestRevision("46")).andReturn(result);
     expect(fileSystem.getTemporaryDirectory("svn_export_testing_45_"))
@@ -67,7 +66,7 @@ public class SvnCodebaseCreatorTest extends TestCase {
 
     control.replay();
     CodebaseCreator cc =
-        new SvnCodebaseCreator(fileSystem, "testing", mockConfig, revisionHistory, util);
+        new SvnCodebaseCreator(fileSystem, "testing", config, revisionHistory, util);
     Codebase r = cc.create(ImmutableMap.of("revision", "46"));
     assertEquals("/dummy/path/45", r.root().getAbsolutePath());
     assertEquals("internal", r.projectSpace());

@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.devtools.moe.client.InvalidProject;
 import com.google.devtools.moe.client.Ui;
 import com.google.devtools.moe.client.codebase.ExpressionEngine;
+import com.google.devtools.moe.client.config.ConfigParser;
 import com.google.devtools.moe.client.config.EditorConfig;
 import com.google.devtools.moe.client.config.ProjectConfig;
 import com.google.devtools.moe.client.config.RepositoryConfig;
@@ -53,14 +54,20 @@ public abstract class ProjectContextFactory {
   private final Editors editors;
 
   protected final Ui ui;
+  protected final ConfigParser<ProjectConfig> projectConfigParser;
 
   public ProjectContextFactory(
-      ExpressionEngine expressionEngine, Ui ui, Repositories repositories, Editors editors) {
+      ExpressionEngine expressionEngine,
+      Ui ui,
+      Repositories repositories,
+      Editors editors,
+      ConfigParser<ProjectConfig> configParser) {
     // TODO(cgruber):push nullability back from this point.
     this.expressionEngine = expressionEngine;
     this.repositories = Preconditions.checkNotNull(repositories);
     this.ui = ui;
     this.editors = editors;
+    this.projectConfigParser = configParser;
   }
 
   /**
@@ -98,7 +105,7 @@ public abstract class ProjectContextFactory {
       throws InvalidProject {
     ImmutableMap.Builder<String, RepositoryType> builder = ImmutableMap.builder();
 
-    for (Map.Entry<String, RepositoryConfig> entry : config.repositories().entrySet()) {
+    for (Map.Entry<String, RepositoryConfig> entry : config.getRepositories().entrySet()) {
       builder.put(entry.getKey(), repositories.create(entry.getKey(), entry.getValue()));
     }
     return builder.build();
@@ -106,7 +113,7 @@ public abstract class ProjectContextFactory {
 
   private ImmutableMap<String, Editor> buildEditors(ProjectConfig config) throws InvalidProject {
     ImmutableMap.Builder<String, Editor> builder = ImmutableMap.builder();
-    for (Map.Entry<String, EditorConfig> entry : config.editors().entrySet()) {
+    for (Map.Entry<String, EditorConfig> entry : config.getEditors().entrySet()) {
       builder.put(entry.getKey(), editors.makeEditorFromConfig(entry.getKey(), entry.getValue()));
     }
     return builder.build();
@@ -115,7 +122,7 @@ public abstract class ProjectContextFactory {
   private ImmutableMap<TranslationPath, TranslationPipeline> buildTranslators(ProjectConfig config)
       throws InvalidProject {
     ImmutableMap.Builder<TranslationPath, TranslationPipeline> builder = ImmutableMap.builder();
-    for (TranslatorConfig translatorConfig : config.translators()) {
+    for (TranslatorConfig translatorConfig : config.getTranslators()) {
       TranslationPipeline t = makeTranslatorFromConfig(translatorConfig, config);
 
       TranslationPath tPath =
@@ -128,7 +135,7 @@ public abstract class ProjectContextFactory {
 
   private ImmutableMap<String, MigrationConfig> buildMigrationConfigs(ProjectConfig config) {
     ImmutableMap.Builder<String, MigrationConfig> builder = ImmutableMap.builder();
-    for (MigrationConfig migrationConfig : config.migrations()) {
+    for (MigrationConfig migrationConfig : config.getMigrations()) {
       builder.put(migrationConfig.getName(), migrationConfig);
     }
     return builder.build();
@@ -174,7 +181,7 @@ public abstract class ProjectContextFactory {
 
   private TranslatorConfig findInverseTranslatorConfig(
       TranslatorConfig transConfig, ProjectConfig projConfig) throws InvalidProject {
-    List<TranslatorConfig> otherTranslators = projConfig.translators();
+    List<TranslatorConfig> otherTranslators = projConfig.getTranslators();
     for (TranslatorConfig otherTrans : otherTranslators) {
       if (otherTrans.getToProjectSpace().equals(transConfig.getFromProjectSpace())
           && otherTrans.getFromProjectSpace().equals(transConfig.getToProjectSpace())) {

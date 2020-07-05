@@ -126,7 +126,7 @@ public class GitClonedRepository implements LocalWorkspace {
   public void cloneLocallyAtHead(Lifetime cloneLifetime) {
     Preconditions.checkState(!clonedLocally);
 
-    Optional<String> branchName = repositoryConfig.getBranch();
+    Optional<String> branchName = Optional.fromNullable(repositoryConfig.getBranch());
     String tempDirName = branchName.isPresent()
         ? "git_clone_" + repositoryName + "_" + branchName.get() + "_"
         : "git_clone_" + repositoryName + "_";
@@ -136,7 +136,7 @@ public class GitClonedRepository implements LocalWorkspace {
       initLocal(localCloneTempDir);
       ImmutableList.Builder<String> pullArgs = ImmutableList.builder();
       pullArgs.add("pull");
-      if (repositoryConfig.shallowCheckout()) {
+      if (repositoryConfig.getShallowCheckout()) {
         pullArgs.add("--depth=1");
       }
       pullArgs.add("origin", branchName.or("master"));
@@ -161,7 +161,7 @@ public class GitClonedRepository implements LocalWorkspace {
       // Otherwise, no update/checkout is necessary since we are already at the desired revId,
       // branch head.
       if (!headHash.equals(revId)) {
-        if (repositoryConfig.shallowCheckout()) {
+        if (repositoryConfig.getShallowCheckout()) {
           // Unshallow the repository to enable checking out given revId.
           runGitCommand("fetch", "--unshallow");
         }
@@ -208,7 +208,7 @@ public class GitClonedRepository implements LocalWorkspace {
         initLocal(archiveLocation);
         ImmutableList.Builder<String> pullArgs = ImmutableList.builder();
         pullArgs.add("pull");
-        if (repositoryConfig.shallowCheckout()) {
+        if (repositoryConfig.getShallowCheckout()) {
           pullArgs.add("--depth=1");
         }
         pullArgs.add("origin", revId);

@@ -24,15 +24,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.devtools.moe.client.CommandRunner;
 import com.google.devtools.moe.client.FileSystem;
+import com.google.devtools.moe.client.moshi.MoshiModule;
 import com.google.devtools.moe.client.codebase.Codebase;
 import com.google.devtools.moe.client.codebase.expressions.RepositoryExpression;
-import com.google.devtools.moe.client.GsonModule;
 import com.google.devtools.moe.client.config.EditorConfig;
 import com.google.devtools.moe.client.config.ScrubberConfig;
 import com.google.devtools.moe.client.tools.EagerLazy;
 import com.google.devtools.moe.client.tools.TarUtils;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.squareup.moshi.Moshi;
 import dagger.Lazy;
 import java.io.File;
 import junit.framework.TestCase;
@@ -77,10 +76,7 @@ public class ScrubbingEditorTest extends TestCase {
                             "  \"usernames_to_scrub\": [],",
                             "  \"usernames_to_publish\": [],",
                             "  \"scrub_unknown_users\": true,",
-                            "  \"scrub_authors\": true,",
-                            "  \"maximum_blank_lines\": 0,",
-                            "  \"scrub_java_testsize_annotations\": false,",
-                            "  \"scrub_proto_comments\": false",
+                            "  \"scrub_authors\": true",
                             "}"),
                     "/codebase")))
         .andReturn("");
@@ -96,14 +92,14 @@ public class ScrubbingEditorTest extends TestCase {
     control.replay();
 
 
-    Gson gson = GsonModule.provideGson();
+    Moshi moshi = MoshiModule.provideMoshi();
     ScrubberConfig scrubberConfig =
-        gson.fromJson(
-            "{\"scrub_unknown_users\":\"true\",\"usernames_file\":null}", ScrubberConfig.class);
+        moshi.adapter(ScrubberConfig.class)
+            .fromJson("{\"scrub_unknown_users\":true,\"usernames_file\":null}");
     EditorConfig config =
-        EditorConfig.create(scrubber, scrubberConfig, "tar", new JsonObject(), false);
+        new EditorConfig(scrubber, scrubberConfig, "tar", "{}", false);
     ScrubbingEditor editor =
-        new ScrubbingEditor(cmd, fileSystem, executable, tarUtils, null, "scrubber", config, gson);
+        new ScrubbingEditor(cmd, fileSystem, executable, tarUtils, null, "scrubber", config, moshi);
     editor.edit(codebase, ImmutableMap.<String, String>of());
     control.verify();
   }

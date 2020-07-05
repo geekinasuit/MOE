@@ -22,14 +22,12 @@ import static org.easymock.EasyMock.expect;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.devtools.moe.client.FileSystem;
+import com.google.devtools.moe.client.moshi.MoshiModule;
 import com.google.devtools.moe.client.codebase.Codebase;
 import com.google.devtools.moe.client.codebase.expressions.RepositoryExpression;
-import com.google.devtools.moe.client.GsonModule;
 import com.google.devtools.moe.client.config.EditorConfig;
 import com.google.devtools.moe.client.config.ScrubberConfig;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.squareup.moshi.Moshi;
 import java.io.File;
 import java.io.IOException;
 import junit.framework.TestCase;
@@ -40,14 +38,15 @@ public class InverseRenamingEditorTest extends TestCase {
 
   private final IMocksControl control = EasyMock.createControl();
   private final FileSystem mockFs = control.createMock(FileSystem.class);
-  private final Gson gson = GsonModule.provideGson();
-  private final ScrubberConfig scrubberConfig = gson.fromJson("{}", ScrubberConfig.class);
+  private final Moshi moshi = MoshiModule.provideMoshi();
+  private final ScrubberConfig scrubberConfig = moshi.adapter(ScrubberConfig.class).fromJson("{}");
+
+  public InverseRenamingEditorTest() throws IOException {}
 
   public void testEdit() throws Exception {
-    JsonObject mappings =
-        new JsonParser().parse("{\"internal_root\": \"public_root\"}").getAsJsonObject();
-    EditorConfig config = EditorConfig.create(renamer, scrubberConfig, "", mappings, false);
-    RenamingEditor inverseRenamey = new RenamingEditor(mockFs, gson, "renamey", config);
+    String mappings ="{\"internal_root\": \"public_root\"}";
+    EditorConfig config = new EditorConfig(renamer, scrubberConfig, "", mappings, false);
+    RenamingEditor inverseRenamey = new RenamingEditor(mockFs, moshi, "renamey", config);
 
     Codebase input =
         Codebase.create(new File("/input"), "public", new RepositoryExpression("input"));

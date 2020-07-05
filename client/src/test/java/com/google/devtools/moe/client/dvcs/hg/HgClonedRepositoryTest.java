@@ -35,15 +35,15 @@ public class HgClonedRepositoryTest extends TestCase {
   private final IMocksControl control = EasyMock.createControl();
   private final FileSystem mockFS = control.createMock(FileSystem.class);
   private final CommandRunner cmd = control.createMock(CommandRunner.class);
-  private final RepositoryConfig repositoryConfig = control.createMock(RepositoryConfig.class);
 
   private final String repositoryName = "mockrepo";
   private final String repositoryURL = "http://foo/hg";
   private final Lifetimes lifetimes = new Lifetimes(new Ui(System.err));
+  private final RepositoryConfig repositoryConfig = RepositoryConfig.fakeRepositoryConfig()
+      .copyWithUrl(repositoryURL)
+      .copyWithBranch("mybranch");
 
   public void testCloneLocally() throws Exception {
-    expect(repositoryConfig.getUrl()).andReturn(repositoryURL).anyTimes();
-    expect(repositoryConfig.getBranch()).andReturn(Optional.of("mybranch")).anyTimes();
     String localCloneTempDir = "/tmp/hg_clone_mockrepo_12345";
 
     // The Lifetimes of clones in these tests are arbitrary since we're not really creating any

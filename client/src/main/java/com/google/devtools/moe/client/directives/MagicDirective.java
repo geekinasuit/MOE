@@ -129,7 +129,7 @@ public class MagicDirective extends Directive {
         }
 
         RepositoryType fromRepositoryType =
-            context.getRepository(migrationConfig.getFromRepository());
+            context.getRepository(migrationConfig.getFrom());
         List<Migration> migrations =
             migrator.findMigrationsFromEquivalency(fromRepositoryType, migrationConfig);
 
@@ -140,12 +140,12 @@ public class MagicDirective extends Directive {
 
         RepositoryEquivalence lastRecordedEquivalence = migrations.get(0).sinceEquivalence();
         RepositoryExpression targetRepositoryPointOfEquivalency =
-            new RepositoryExpression(migrationConfig.getToRepository());
+            new RepositoryExpression(migrationConfig.getTo());
         if (lastRecordedEquivalence != null) {
           targetRepositoryPointOfEquivalency =
               targetRepositoryPointOfEquivalency.atRevision(
                   lastRecordedEquivalence
-                      .get(migrationConfig.getToRepository())
+                      .get(migrationConfig.getTo())
                       .revId());
         }
 
@@ -184,7 +184,7 @@ public class MagicDirective extends Directive {
           // For each migration, the reference to-codebase for inverse translation is the Writer,
           // since it contains the latest changes (i.e. previous migrations) to the to-repository.
           Expression referenceTargetCodebase =
-              new RepositoryExpression(migrationConfig.getToRepository())
+              new RepositoryExpression(migrationConfig.getTo())
                   .withOption("localroot", targetCodebaseWriter.getRoot().getAbsolutePath());
           try (Task oneMigrationTask =
               ui.newTask(
@@ -212,7 +212,7 @@ public class MagicDirective extends Directive {
             }
 
             RepositoryType fromRepoType =
-                context.getRepository(migrationConfig.getFromRepository());
+                context.getRepository(migrationConfig.getFrom());
             ScrubberConfig scrubber =
                 config.findScrubberConfig(migration.fromRepository(), migration.toRepository());
             draftRevision =
@@ -231,7 +231,7 @@ public class MagicDirective extends Directive {
         migrationsMadeBuilder.add(
             String.format(
                 "%s in repository %s",
-                draftRevision.getLocation(), migrationConfig.getToRepository()));
+                draftRevision.getLocation(), migrationConfig.getTo()));
         targetCodebaseWriter.printPushMessage(ui);
       }
     }

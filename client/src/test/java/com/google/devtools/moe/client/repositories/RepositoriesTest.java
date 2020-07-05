@@ -16,51 +16,46 @@
 
 package com.google.devtools.moe.client.repositories;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.devtools.moe.client.InvalidProject;
 import com.google.devtools.moe.client.config.RepositoryConfig;
 import com.google.devtools.moe.client.testing.DummyRepositoryFactory;
-import junit.framework.TestCase;
 import org.easymock.EasyMock;
+import org.junit.Before;
+import org.junit.Test;
 
-public class RepositoriesTest extends TestCase {
+public class RepositoriesTest {
   private final RepositoryType.Factory dummyService = new DummyRepositoryFactory();
   private final Repositories repositories = new Repositories(ImmutableSet.of(dummyService));
-  private final RepositoryConfig config = EasyMock.createNiceMock(RepositoryConfig.class);
-
-  @Override
-  public void setUp() {
-    expect(config.getType()).andReturn("dummy");
-    EasyMock.replay(config);
-  }
+  private final RepositoryConfig config = RepositoryConfig.fakeRepositoryConfig();
 
   /**
    * Confirms that {@link Repositories#create(String, RepositoryConfig)} method will return
    * a the Repository associated with the type populated in the given {@link RepositoryConfig}
    */
-  public void testValidRepositoryConfig() throws InvalidProject {
+  @Test public void testValidRepositoryConfig() throws InvalidProject {
     // Test the .create method.
     RepositoryType repository = repositories.create("myRepository", config);
-    assertNotNull(repository);
-    assertEquals("myRepository", repository.name());
+    assertThat(repository).isNotNull();
+    assertThat(repository.name()).isEqualTo("myRepository");
   }
 
   /** Ensure that {@link Repositories} blacklists keywords. */
-  public void testReservedKeywordRepositoryConfig() {
+  @Test public void testReservedKeywordRepositoryConfig() {
     // Test the method with all reserved repository keywords.
     for (String keyword : ImmutableList.of("file")) {
-      try {
-        repositories.create(keyword, config);
-        fail(
-            Repositories.class.getSimpleName()
-                + ".create does not check for the reserved keyword '"
-                + keyword
-                + "' in the repository name.");
-      } catch (InvalidProject expected) {
-      }
+      assertThrows(
+          Repositories.class.getSimpleName()
+              + ".create does not check for the reserved keyword '"
+              + keyword
+              + "' in the repository name.",
+          InvalidProject.class,
+          () -> repositories.create(keyword, config));
     }
   }
 }

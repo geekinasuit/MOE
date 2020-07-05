@@ -27,8 +27,6 @@ import com.google.devtools.moe.client.config.ProjectConfig;
 import com.google.devtools.moe.client.qualifiers.Argument;
 import com.google.devtools.moe.client.repositories.Revision;
 import com.google.devtools.moe.client.testing.DummyDb;
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import dagger.Provides;
@@ -165,7 +163,7 @@ public class FileDb implements Db, HasDbStorage {
             JsonAdapter<DbStorage> adapter = moshi.adapter(DbStorage.class);
             DbStorage dbStorage = adapter.fromJson(dbText);
             return new FileDb(location.toString(), dbStorage, new FileDb.Writer(moshi, filesystem));
-          } catch (JsonParseException e) {
+          } catch (IOException e) {
             throw new InvalidProject("Could not parse MOE DB: " + e.getMessage());
           }
         } else {
@@ -195,7 +193,7 @@ public class FileDb implements Db, HasDbStorage {
         return new Db.NoopDb();
       }
 
-      String location = !isNullOrEmpty(override) ? override : config.databaseUri();
+      String location = !isNullOrEmpty(override) ? override : config.getDatabaseUri();
       if (isNullOrEmpty(location)) {
         throw new InvalidProject(
             "Database location was not set in the project configuration nor on the command-line.");

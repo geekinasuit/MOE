@@ -17,6 +17,7 @@
 package com.google.devtools.moe.client.dvcs.hg;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.devtools.moe.client.moshi.MoshiModule.provideMoshi;
 import static org.easymock.EasyMock.expect;
 
 import com.google.common.base.Suppliers;
@@ -29,7 +30,6 @@ import com.google.devtools.moe.client.database.FileDb;
 import com.google.devtools.moe.client.database.RepositoryEquivalence;
 import com.google.devtools.moe.client.database.RepositoryEquivalenceMatcher;
 import com.google.devtools.moe.client.database.RepositoryEquivalenceMatcher.Result;
-import com.google.devtools.moe.client.GsonModule;
 import com.google.devtools.moe.client.config.RepositoryConfig;
 import com.google.devtools.moe.client.repositories.Revision;
 import com.google.devtools.moe.client.repositories.RevisionHistory.SearchType;
@@ -55,9 +55,11 @@ public class HgRevisionHistoryTest extends TestCase {
 
   private final IMocksControl control = EasyMock.createControl();
   private final CommandRunner cmd = control.createMock(CommandRunner.class);
-  private final RepositoryConfig config = control.createMock(RepositoryConfig.class);
+  private final RepositoryConfig config = RepositoryConfig.fakeRepositoryConfig()
+      .copyWithBranch("mybranch");
 
   private HgClonedRepository mockClonedRepo(String repoName) {
+
     HgClonedRepository mockRepo = control.createMock(HgClonedRepository.class);
     expect(mockRepo.getRepositoryName()).andReturn(repoName).anyTimes();
     expect(mockRepo.getLocalTempDir()).andReturn(new File(CLONE_TEMP_DIR)).anyTimes();
@@ -374,7 +376,7 @@ public class HgRevisionHistoryTest extends TestCase {
     control.replay();
 
     FileDb database =
-        new FileDb(null, GsonModule.provideGson().fromJson(testDb1, DbStorage.class), null);
+        new FileDb(null, provideMoshi().adapter(DbStorage.class).fromJson(testDb1), null);
 
     HgRevisionHistory history = new HgRevisionHistory(cmd, HG_CMD, Suppliers.ofInstance(mockRepo));
 
@@ -492,7 +494,7 @@ public class HgRevisionHistoryTest extends TestCase {
     control.replay();
 
     FileDb database =
-        new FileDb(null, GsonModule.provideGson().fromJson(testDb2, DbStorage.class), null);
+        new FileDb(null, provideMoshi().adapter(DbStorage.class).fromJson(testDb2), null);
 
     HgRevisionHistory history = new HgRevisionHistory(cmd, HG_CMD, Suppliers.ofInstance(mockRepo));
     Result result =

@@ -17,7 +17,7 @@ package com.google.devtools.moe.client.repositories;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.devtools.moe.client.MoshiModule;
+import com.google.devtools.moe.client.moshi.MoshiModule;
 
 import com.squareup.moshi.Moshi;
 import junit.framework.TestCase;

@@ -5,11 +5,14 @@ jvm_unit_test(
     deps = [
         "//client/src/main/java/com/google/devtools/moe/client",
         "//client/src/main/java/com/google/devtools/moe/client:core",
+        "//client/src/main/java/com/google/devtools/moe/client/config",
+        "//client/src/main/java/com/google/devtools/moe/client/moshi",
         "//client/src/test/java/com/google/devtools/moe/client/testing",
         "@maven//com/google/guava",
         "@maven//com/google/truth",
-        "@maven//org/easymock",
+        "@maven//com/squareup/moshi",
         "@maven//junit",
+        "@maven//org/easymock",
     ],
 )
 
@@ -18,6 +21,8 @@ jvm_unit_test(
     deps = [
         "//client/src/main/java/com/google/devtools/moe/client",
         "//client/src/main/java/com/google/devtools/moe/client:core",
+        "//client/src/main/java/com/google/devtools/moe/client/config",
+        "//client/src/main/java/com/google/devtools/moe/client/moshi",
         "//client/src/test/java/com/google/devtools/moe/client/testing",
         "@maven//com/google/guava",
         "@maven//com/google/truth",
@@ -30,6 +35,8 @@ jvm_unit_test(
     deps = [
         "//client/src/main/java/com/google/devtools/moe/client",
         "//client/src/main/java/com/google/devtools/moe/client:core",
+        "//client/src/main/java/com/google/devtools/moe/client/config",
+        "//client/src/main/java/com/google/devtools/moe/client/moshi",
         "//client/src/test/java/com/google/devtools/moe/client/testing",
         "@maven//com/google/guava",
         "@maven//com/google/truth",
@@ -42,6 +49,8 @@ jvm_unit_test(
     deps = [
         "//client/src/main/java/com/google/devtools/moe/client",
         "//client/src/main/java/com/google/devtools/moe/client:core",
+        "//client/src/main/java/com/google/devtools/moe/client/config",
+        "//client/src/main/java/com/google/devtools/moe/client/moshi",
         "@maven//com/google/guava",
         "@maven//com/google/truth",
         "@maven//joda-time",
@@ -54,6 +63,8 @@ jvm_unit_test(
     deps = [
         "//client/src/main/java/com/google/devtools/moe/client",
         "//client/src/main/java/com/google/devtools/moe/client:core",
+        "//client/src/main/java/com/google/devtools/moe/client/config",
+        "//client/src/main/java/com/google/devtools/moe/client/moshi",
         "@maven//com/google/guava",
         "@maven//com/google/truth",
         "@maven//junit",
@@ -69,9 +80,11 @@ jvm_unit_test(
         "//client/src/main/java/com/google/devtools/moe/client",
         "//client/src/main/java/com/google/devtools/moe/client:core",
         "//client/src/main/java/com/google/devtools/moe/client/config",
-        "@maven//com/google/code/gson",
+        "//client/src/main/java/com/google/devtools/moe/client/github",
+        "//client/src/main/java/com/google/devtools/moe/client/moshi",
         "@maven//com/google/guava",
         "@maven//com/google/truth",
+        "@maven//com/squareup/moshi",
         "@maven//junit",
     ],
 )
@@ -81,6 +94,8 @@ jvm_unit_test(
     deps = [
         "//client/src/main/java/com/google/devtools/moe/client",
         "//client/src/main/java/com/google/devtools/moe/client:core",
+        "//client/src/main/java/com/google/devtools/moe/client/config",
+        "//client/src/main/java/com/google/devtools/moe/client/moshi",
         "@maven//com/google/guava",
         "@maven//com/google/truth",
         "@maven//junit",
@@ -92,6 +107,8 @@ jvm_unit_test(
     deps = [
         "//client/src/main/java/com/google/devtools/moe/client",
         "//client/src/main/java/com/google/devtools/moe/client:core",
+        "//client/src/main/java/com/google/devtools/moe/client/config",
+        "//client/src/main/java/com/google/devtools/moe/client/moshi",
         "@maven//com/google/guava",
         "@maven//com/google/truth",
         "@maven//junit",
@@ -103,6 +120,7 @@ jvm_unit_test(
     deps = [
         "//client/src/main/java/com/google/devtools/moe/client",
         "//client/src/main/java/com/google/devtools/moe/client:core",
+        "//client/src/main/java/com/google/devtools/moe/client/config",
         "@maven//com/google/truth",
         "@maven//joda-time",
         "@maven//junit",
@@ -114,12 +132,14 @@ jvm_unit_test(
     deps = [
         "//client/src/main/java/com/google/devtools/moe/client",
         "//client/src/main/java/com/google/devtools/moe/client:core",
+        "//client/src/main/java/com/google/devtools/moe/client/config",
+        "//client/src/main/java/com/google/devtools/moe/client/moshi",
         "@maven//cglib:cglib-nodep",
         "@maven//com/google/guava",
         "@maven//com/google/truth",
+        "@maven//junit",
         "@maven//org/easymock",
         "@maven//org/objenesis",
-        "@maven//junit",
     ],
 )
 
@@ -128,6 +148,8 @@ jvm_unit_test(
     deps = [
         "//client/src/main/java/com/google/devtools/moe/client",
         "//client/src/main/java/com/google/devtools/moe/client:core",
+        "//client/src/main/java/com/google/devtools/moe/client/config",
+        "//client/src/main/java/com/google/devtools/moe/client/moshi",
         "//client/src/test/java/com/google/devtools/moe/client/testing",
         "@maven//com/google/guava",
         "@maven//com/google/truth",

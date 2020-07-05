@@ -54,8 +54,7 @@ public class DescriptionMetadataScrubber extends MetadataScrubber {
     String parentsString = Joiner.on(", ").join(parentRevIds.build());
 
     String scrubbedDescription =
-        config
-            .getLogFormat()
+        config.getLogFormat()
             .replace("{id}", rm.id())
             .replace("{author}", rm.author())
             .replace("{date}", DATE_FMT.print(rm.date()))

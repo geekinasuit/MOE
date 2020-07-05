@@ -17,6 +17,7 @@
 package com.google.devtools.moe.client.directives;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.devtools.moe.client.moshi.MoshiModule.provideMoshi;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.devtools.moe.client.SystemCommandRunner;
@@ -24,6 +25,9 @@ import com.google.devtools.moe.client.SystemFileSystem;
 import com.google.devtools.moe.client.Ui;
 import com.google.devtools.moe.client.codebase.ExpressionEngine;
 import com.google.devtools.moe.client.codebase.WriterFactory;
+import com.google.devtools.moe.client.config.ConfigParser;
+import com.google.devtools.moe.client.config.ProjectConfig;
+import com.google.devtools.moe.client.moshi.MoshiProjectConfigParser;
 import com.google.devtools.moe.client.project.ProjectContext;
 import com.google.devtools.moe.client.repositories.Repositories;
 import com.google.devtools.moe.client.repositories.RepositoryType;
@@ -46,8 +50,9 @@ public class ChangeDirectiveTest extends TestCase {
   private final WriterFactory wf = new WriterFactory(ui);
   private final ExpressionEngine expressionEngine =
       TestingUtils.expressionEngineWithRepo(ui, new SystemFileSystem(), cmd);
+  private final ConfigParser<ProjectConfig> parser = new MoshiProjectConfigParser(provideMoshi());
   private final InMemoryProjectContextFactory contextFactory =
-      new InMemoryProjectContextFactory(expressionEngine, ui, repositories);
+      new InMemoryProjectContextFactory(expressionEngine, ui, repositories, parser);
 
   public void testChange() throws Exception {
     contextFactory.projectConfigs.put(

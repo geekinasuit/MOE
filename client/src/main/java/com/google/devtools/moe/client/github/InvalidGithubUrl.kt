@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.moe.client;
+package com.google.devtools.moe.client.github
 
-import com.google.gson.TypeAdapterFactory;
-import com.ryanharter.auto.value.gson.GsonTypeAdapterFactory;
+import com.google.devtools.moe.client.MoeUserProblem
+import com.google.devtools.moe.client.Ui
 
-@GsonTypeAdapterFactory
-public abstract class MoeTypeAdapterFactory implements TypeAdapterFactory {
-  public static TypeAdapterFactory create() {
-    return new AutoValueGson_MoeTypeAdapterFactory();
-  }
+/** An error reported when an invalid github pull request URL is given  */
+class InvalidGithubUrl(messageFmt: String, vararg args: Any) : MoeUserProblem() {
+  override val message: String = String.format(messageFmt!!, *args)
+  override fun reportTo(messenger: Ui) { messenger.message(message) }
 }

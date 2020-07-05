@@ -33,17 +33,7 @@ public class OriginalAuthorMetadataScrubberTest extends TestCase {
   private final Ui ui = new Ui(out, null);
   private final OriginalAuthorMetadataScrubber oams = new OriginalAuthorMetadataScrubber(ui);
 
-  private final AtomicBoolean shouldScrub = new AtomicBoolean(false);
-  private final MetadataScrubberConfig config =
-      new MetadataScrubberConfig() {
-        @Override
-        public boolean getRestoreOriginalAuthor() {
-          return shouldScrub.get();
-        }
-      };
-
   public void testOriginalAuthorSubstitution() throws Exception {
-    shouldScrub.set(true);
     RevisionMetadata initial =
         RevisionMetadata.builder()
             .id("100")
@@ -65,13 +55,15 @@ public class OriginalAuthorMetadataScrubberTest extends TestCase {
             .build();
     expected = parseLegacyFields(expected);
 
-    RevisionMetadata actual = oams.scrub(initial, config);
+    RevisionMetadata actual = oams.scrub(
+        initial,
+        MetadataScrubberConfig.createFakeWithRestoreOriginalAuthor(true)
+    );
     assertThat(actual.author()).isEqualTo("Blah Foo <blah@foo.com>");
     assertThat(actual.description()).isEqualTo(expected.description());
   }
 
   public void testOriginalAuthorSubstitution_Disabled() throws Exception {
-    shouldScrub.set(false);
     RevisionMetadata initial =
         RevisionMetadata.builder()
             .id("100")
@@ -84,7 +76,10 @@ public class OriginalAuthorMetadataScrubberTest extends TestCase {
             .build();
     initial = parseLegacyFields(initial);
 
-    RevisionMetadata actual = oams.scrub(initial, config);
+    RevisionMetadata actual = oams.scrub(
+      initial,
+      MetadataScrubberConfig.createFakeWithRestoreOriginalAuthor(false)
+    );
     assertThat(actual).isEqualTo(initial);
     assertThat(actual).isSameAs(initial);
   }
