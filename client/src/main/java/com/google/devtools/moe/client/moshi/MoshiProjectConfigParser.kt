@@ -3,6 +3,7 @@ package com.google.devtools.moe.client.moshi
 import com.google.devtools.moe.client.InvalidProject
 import com.google.devtools.moe.client.config.ConfigParser
 import com.google.devtools.moe.client.config.ProjectConfig
+import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.Moshi
 import dagger.Reusable
 import java.io.IOException
@@ -18,8 +19,10 @@ class MoshiProjectConfigParser @Inject constructor(val moshi: Moshi) : ConfigPar
       val config = adapter.fromJson(json!!)
       InvalidProject.assertNotNull(config, "Could not parse MOE config")
       config!!.also { it.validate() }
+    } catch (e: JsonDataException) {
+      throw InvalidProject("Could not parse MOE config: " + e.message)
     } catch (e: IOException) {
-      throw InvalidProject(e, "Could not parse MOE config: " + e.message)
+      throw InvalidProject("Could not parse MOE config: " + e.message)
     }
   }
 }

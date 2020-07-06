@@ -97,7 +97,7 @@ public class ScrubbingEditorTest extends TestCase {
         moshi.adapter(ScrubberConfig.class)
             .fromJson("{\"scrub_unknown_users\":true,\"usernames_file\":null}");
     EditorConfig config =
-        new EditorConfig(scrubber, scrubberConfig, "tar", "{}", false);
+        new EditorConfig(scrubber, scrubberConfig, "tar", ImmutableMap.of(), false);
     ScrubbingEditor editor =
         new ScrubbingEditor(cmd, fileSystem, executable, tarUtils, null, "scrubber", config, moshi);
     editor.edit(codebase, ImmutableMap.<String, String>of());

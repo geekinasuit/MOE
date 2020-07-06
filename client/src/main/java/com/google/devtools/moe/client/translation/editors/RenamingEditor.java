@@ -57,26 +57,19 @@ public class RenamingEditor implements Editor, InverseEditor {
   private final Map<Pattern, String> regexMappings;
   private final boolean useRegex;
 
-  RenamingEditor(
-      @Provided FileSystem filesystem, @Provided Moshi moshi, String name, EditorConfig config) {
+  RenamingEditor(@Provided FileSystem filesystem, String name, EditorConfig config) {
     this.filesystem = filesystem;
     this.editorName = name;
     if (config.getMappings().isEmpty()) {
       throw new MoeProblem("No mappings object found in the config for editor %s", editorName);
     }
-    try {
-      regexMappings = mappingsFromConfig(moshi, config);
-    } catch (IOException e) {
-      throw new InvalidProject("Unable to parse mappings for %s: %s", name, config.getMappings());
-    }
+    regexMappings = mappingsFromConfig(config);
     this.useRegex = config.getUseRegex();
   }
 
   /** Preprocesses the mappings from the given {@link EditorConfig}. */
-  private static Map<Pattern, String> mappingsFromConfig(Moshi moshi, EditorConfig config)
-  throws IOException {
-    Map<String, String> mappings =
-        (Map<String, String>) moshi.adapter(MAP_TYPE).fromJson(config.getMappings());
+  private static Map<Pattern, String> mappingsFromConfig(EditorConfig config) {
+    Map<String, String> mappings = config.getMappings();
     ImmutableMap.Builder<Pattern, String> regexMappingsBuilder = ImmutableMap.builder();
     for (String mapping : mappings.keySet()) {
       regexMappingsBuilder.put(

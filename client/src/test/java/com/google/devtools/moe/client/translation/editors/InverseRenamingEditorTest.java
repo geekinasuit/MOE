@@ -30,6 +30,7 @@ import com.google.devtools.moe.client.config.ScrubberConfig;
 import com.squareup.moshi.Moshi;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
@@ -44,9 +45,9 @@ public class InverseRenamingEditorTest extends TestCase {
   public InverseRenamingEditorTest() throws IOException {}
 
   public void testEdit() throws Exception {
-    String mappings ="{\"internal_root\": \"public_root\"}";
+    Map<String, String> mappings =ImmutableMap.of("internal_root", "public_root");
     EditorConfig config = new EditorConfig(renamer, scrubberConfig, "", mappings, false);
-    RenamingEditor inverseRenamey = new RenamingEditor(mockFs, moshi, "renamey", config);
+    RenamingEditor inverseRenamey = new RenamingEditor(mockFs, "renamey", config);
 
     Codebase input =
         Codebase.create(new File("/input"), "public", new RepositoryExpression("input"));

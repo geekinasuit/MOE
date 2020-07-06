@@ -30,6 +30,7 @@ import com.google.devtools.moe.client.config.ScrubberConfig;
 import com.squareup.moshi.Moshi;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import junit.framework.TestCase;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
@@ -42,15 +43,13 @@ public class RenamingEditorTest extends TestCase {
 
   public RenamingEditorTest() throws IOException {}
 
-  public void testRenameFile_NoRegex() throws Exception {
-    String mappings =
-        "{"
-            + "\"fuzzy/wuzzy\": \"buzzy\","
-            + "\"olddir\": \"newdir\","
-            + "\".*\": \"ineffectual_regex\""
-            + "}";
+  public void testRenameFile_NoRegex() {
+    Map<String, String> mappings = ImmutableMap.of(
+        "fuzzy/wuzzy", "buzzy",
+            "olddir","newdir",
+            ".*", "ineffectual_regex");
     EditorConfig config = new EditorConfig(renamer, scrubberConfig, "", mappings, false);
-    RenamingEditor renamer = new RenamingEditor(fileSystem, moshi, "renamey", config);
+    RenamingEditor renamer = new RenamingEditor(fileSystem,"renamey", config);
 
     // Leading '/' should be trimmed.
     assertEquals("tmp/newdir/foo/bar.txt", renamer.renameFile("/tmp/olddir/foo/bar.txt"));
@@ -66,10 +65,10 @@ public class RenamingEditorTest extends TestCase {
   }
 
   public void testRenameFile_Regex() throws Exception {
-    String mappings =
-        "{" + "\"/old([^/]*)\": \"/brand/new$1\"," + "\"fuzzy/wuzzy\": \"buzzy\"" + "}";
+    Map<String, String> mappings =
+        ImmutableMap.of("/old([^/]*)", "/brand/new$1", "fuzzy/wuzzy", "buzzy");
     EditorConfig config = new EditorConfig(renamer, scrubberConfig, "", mappings, true);
-    RenamingEditor renamer = new RenamingEditor(fileSystem, moshi, "renamey", config);
+    RenamingEditor renamer = new RenamingEditor(fileSystem, "renamey", config);
 
     assertEquals("tmp/brand/newdir/foo/bar.txt", renamer.renameFile("/tmp/olddir/foo/bar.txt"));
 
@@ -88,9 +87,9 @@ public class RenamingEditorTest extends TestCase {
     File srcContents2 = new File("/src/olddummy/file2");
     File src = new File("/src");
     File dest = new File("/dest");
-    String mappings = "{\"olddummy\": \"newdummy\"}";
+    Map<String, String> mappings = ImmutableMap.of("olddummy", "newdummy");
     EditorConfig config = new EditorConfig(renamer, scrubberConfig, "", mappings, false);
-    RenamingEditor renamer = new RenamingEditor(fileSystem, moshi, "renamey", config);
+    RenamingEditor renamer = new RenamingEditor(fileSystem,"renamey", config);
 
     expect(fileSystem.isDirectory(src)).andReturn(true);
     expect(fileSystem.listFiles(src)).andReturn(new File[] {new File("/src/olddummy")});
@@ -131,9 +130,9 @@ public class RenamingEditorTest extends TestCase {
 
     control.replay();
 
-    String mappings = "{\"moe\": \"joe\"}";
+    Map<String, String> mappings = ImmutableMap.of("moe","joe");
     EditorConfig config = new EditorConfig(renamer, scrubberConfig, "", mappings, false);
-    new RenamingEditor(fileSystem, moshi, "renamey", config)
+    new RenamingEditor(fileSystem,"renamey", config)
         .edit(codebase, ImmutableMap.<String, String>of());
 
     control.verify();

@@ -1,10 +1,7 @@
 package com.google.devtools.moe.client.moshi
 
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.google.devtools.moe.client.InvalidProject
-import com.google.devtools.moe.client.config.ConfigParser
-import com.google.devtools.moe.client.config.ProjectConfig
 import com.google.devtools.moe.client.moshi.MoshiModule.Companion.provideMoshi
 import com.squareup.moshi.JsonDataException
 import junit.framework.TestCase
@@ -12,7 +9,7 @@ import org.junit.Assert
 import org.junit.Test
 
 class MoshiProjectConfigParserTest {
-  private val configParser: ConfigParser<ProjectConfig> = MoshiProjectConfigParser(provideMoshi())
+  private val configParser = MoshiProjectConfigParser(provideMoshi())
 
   @Throws(Exception::class)
   @Test fun testValidConfig() {
@@ -27,7 +24,9 @@ class MoshiProjectConfigParserTest {
 
   @Throws(Exception::class)
   @Test fun testInvalidConfig2() {
-    assertInvalidConfig("{\"name\": \"foo\", \"repositories\": {}}", "Must specify repositories")
+  val text = "{\"name\": \"foo\", \"repositories\": {}}"
+    val e = Assert.assertThrows(InvalidProject::class.java) { configParser.parse(text) }
+    assertThat(e).hasMessageThat().contains("Must specify repositories")
   }
 
   @Test fun testInvalidEditor() {
@@ -71,8 +70,7 @@ class MoshiProjectConfigParserTest {
   }
 
   @Test fun testInvalidTranslators3() {
-    assertInvalidConfig(
-      """
+    val text = """
         {
           "name": "foo",
           "repositories": {
@@ -83,9 +81,9 @@ class MoshiProjectConfigParserTest {
               "to_project_space": "y"
           }]
         }
-        """.trimIndent(),
-      "Translator requires steps"
-    )
+        """.trimIndent()
+    val e = Assert.assertThrows(InvalidProject::class.java) { configParser.parse(text) }
+    assertThat(e).hasMessageThat().contains("Translator requires steps")
   }
 
   @Test fun testInvalidStep1() {
@@ -139,9 +137,9 @@ class MoshiProjectConfigParserTest {
       configParser.parse(text)
       TestCase.fail("Expected error")
     } catch (e: InvalidProject) {
-      TestCase.assertEquals(error, e.message)
+      TestCase.assertEquals("Could not parse MOE config: $error", e.message)
     } catch (e: JsonDataException) {
-      TestCase.assertEquals(error, e.message)
+      TestCase.assertEquals("Could not parse MOE config: $error", e.message)
     }
   }
 
@@ -151,7 +149,7 @@ class MoshiProjectConfigParserTest {
       "\"repositories\": {" +
       "\"internal\": {\"type\":\"svn\"}," +
       "\"internal\": {\"type\":\"svn\"}}}"
-    val e = Assert.assertThrows(JsonDataException::class.java) { configParser.parse(text) }
+    val e = Assert.assertThrows(InvalidProject::class.java) { configParser.parse(text) }
     assertThat(e).hasMessageThat().contains("Map key 'internal' has multiple values")
   }
 
@@ -165,8 +163,7 @@ class MoshiProjectConfigParserTest {
         " }" +
         "}"
     )
-    Truth.assertThat(p.databaseUri)
-      .isEqualTo("/foo/bar/database.json")
+    assertThat(p.databaseUri).isEqualTo("/foo/bar/database.json")
   }
 
   @Test fun testDatabaseFileNull() {
@@ -174,15 +171,17 @@ class MoshiProjectConfigParserTest {
     assertThat(p.databaseUri).isNull()
   }
 
-  @Throws(Exception::class)
-  @Test fun testInvalidRepositoryType() {
-    assertInvalidConfig(
-      "{\"name\": \"foo\"," + "\"repositories\": {" + "\"internal\": {}}}",
-      "Required value 'type' missing at $.repositories.internal"
-    )
-    assertInvalidConfig(
-      "{\"name\": \"foo\"," + "\"repositories\": {" + "\"internal\": {\"type\":\"\"}}}",
-      "Must set repository type."
-    )
+  @Test fun testInvalidRepositoryType_NotSet() {
+    val text = "{\"name\": \"foo\"," + "\"repositories\": {" + "\"internal\": {}}}"
+    val e = Assert.assertThrows(InvalidProject::class.java) { configParser.parse(text) }
+    assertThat(e)
+      .hasMessageThat()
+      .contains("Required value 'type' missing at $.repositories.internal")
+  }
+
+  @Test fun testInvalidRepositoryType_SetBlank() {
+    val text = """{"name": "foo", "repositories": { "internal": { "type": " "}}}"""
+    val e = Assert.assertThrows(InvalidProject::class.java) { configParser.parse(text) }
+    assertThat(e).hasMessageThat().contains("Must set repository type.")
   }
 }

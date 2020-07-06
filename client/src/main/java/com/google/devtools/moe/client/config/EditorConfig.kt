@@ -30,7 +30,7 @@ data class EditorConfig(
   @Json(name = "command_string")
   val commandString: String?,
 
-  val mappings: String = "{}",
+  val mappings: Map<String, String> = mapOf(),
 
   @Json(name = "use_regex")
   val useRegex: Boolean = false

@@ -59,7 +59,7 @@ public class ShellEditorTest extends TestCase {
     control.replay();
 
     ScrubberConfig scrubberConfig = provideMoshi().adapter(ScrubberConfig.class).fromJson("{}");
-    EditorConfig config = new EditorConfig(shell, scrubberConfig, CMD, "{}", false);
+    EditorConfig config = new EditorConfig(shell, scrubberConfig, CMD, ImmutableMap.of(), false);
     new ShellEditor(cmd, fileSystem, "shell_editor", config)
         .edit(codebase, ImmutableMap.<String, String>of());
 
