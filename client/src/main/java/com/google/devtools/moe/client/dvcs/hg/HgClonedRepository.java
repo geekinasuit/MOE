@@ -120,7 +120,7 @@ public class HgClonedRepository implements LocalWorkspace {
     localCloneTempDir = filesystem.getTemporaryDirectory(tempDirName, cloneLifetime);
 
     try {
-      Optional<String> branchName = repositoryConfig.getBranch();
+      Optional<String> branchName = Optional.fromNullable(repositoryConfig.getBranch());
       ImmutableList.Builder<String> cloneArgs = ImmutableList.<String>builder();
       cloneArgs.add("clone", repositoryUrl, localCloneTempDir.getAbsolutePath());
       if (branchName.isPresent()) {

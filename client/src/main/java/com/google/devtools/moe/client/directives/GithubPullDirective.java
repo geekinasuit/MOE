@@ -76,35 +76,35 @@ public class GithubPullDirective extends Directive {
         // directives
         ui.message("DEBUG: Pull Request Metadata: '%s'", metadata);
       }
-      if (metadata.merged()) {
+      if (metadata.getMerged()) {
         throw new MoeProblem("This pull request has already been merged on github: '%s'", url);
       }
-      switch (metadata.mergeableState()) {
-        case CLEAN:
-          ui.message("Pull request %s is ready to merge", metadata.number());
+      switch (metadata.getMergeableState()) {
+        case clean:
+          ui.message("Pull request %s is ready to merge", metadata.getNumber());
           break;
-        case UNSTABLE:
+        case unstable:
           ui.message(
               "WARNING: Pull request %s is ready to merge, but GitHub is reporting it as failing. "
                   + "Continuing, but this branch may have problems. ",
-              metadata.number());
+              metadata.getNumber());
           break;
         default:
           throw new MoeProblem(
               "Pull request %s is in an indeterminate state. "
                   + "Please please check the pull request status, "
                   + "perform any needed rebase/merge, and re-run",
-              metadata.number());
+              metadata.getNumber());
       }
 
-      String repoConfigName = findRepoConfig(config.repositories(), metadata);
+      String repoConfigName = findRepoConfig(config.getRepositories(), metadata);
       ui.message("Using '%s' as the source repository.", repoConfigName);
       int result =
           delegate.performBranchMigration(
-              metadata.head().repo().owner().login() + "_" + metadata.head().ref(),
+              metadata.getHead().getRepo().getOwner().getLogin() + "_" + metadata.getHead().getRef(),
               repoConfigName,
-              metadata.head().ref(),
-              metadata.head().repo().cloneUrl());
+              metadata.getHead().getRef(),
+              metadata.getHead().getRepo().getCloneUrl());
       if (delegate.resultDirectory != null) {
         task.keep(delegate.resultDirectory);
       }
@@ -119,7 +119,7 @@ public class GithubPullDirective extends Directive {
   @VisibleForTesting
   static String findRepoConfig(
       final Map<String, RepositoryConfig> repositories, final PullRequest metadata) {
-    PullRequestUrl id = PullRequestUrl.create(metadata.htmlUrl());
+    PullRequestUrl id = PullRequestUrl.create(metadata.getHtmlUrl());
     for (Map.Entry<String, RepositoryConfig> entry : repositories.entrySet()) {
       if (isGithubRepositoryUrl(entry.getValue().getUrl(), id)) {
         return entry.getKey();
@@ -130,7 +130,7 @@ public class GithubPullDirective extends Directive {
       public void reportTo(Ui messenger) {
         StringBuilder sb = new StringBuilder();
         sb.append("No configured repository is applicable to this pull request: ");
-        sb.append(metadata.htmlUrl()).append("\n");
+        sb.append(metadata.getHtmlUrl()).append("\n");
         for (Map.Entry<String, RepositoryConfig> entry : repositories.entrySet()) {
           sb.append("    name: ")
               .append(entry.getKey())
@@ -161,8 +161,8 @@ public class GithubPullDirective extends Directive {
     }
     Matcher matcher = GITHUB_URL_PATTERN.matcher(url.trim());
     return matcher.matches()
-        && matcher.group(1).equals(pullRequestUrl.owner())
-        && matcher.group(2).equals(pullRequestUrl.project());
+        && matcher.group(1).equals(pullRequestUrl.getOwner())
+        && matcher.group(2).equals(pullRequestUrl.getProject());
   }
 
   /**

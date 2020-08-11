@@ -161,12 +161,12 @@ public class MigrateBranchDirective extends Directive {
               .copyWithBranch(branchLabel)
               .copyWithUrl(overrideUrl);
       RepositoryType fromRepoType =
-          repositories.create(migrationConfig.getFromRepository(), fromRepoConfig);
+          repositories.create(migrationConfig.getFrom(), fromRepoConfig);
 
       List<Migration> migrations =
           findMigrationsBetweenBranches(
-              migrationConfig.getFromRepository(),
-              migrationConfig.getToRepository(),
+              migrationConfig.getFrom(),
+              migrationConfig.getTo(),
               baseRepoType.revisionHistory(),
               fromRepoType.revisionHistory(),
               !migrationConfig.getSeparateRevisions());
@@ -177,7 +177,7 @@ public class MigrateBranchDirective extends Directive {
         return 0; // autoclosed.
       }
 
-      RepositoryExpression toRepoExp = new RepositoryExpression(migrationConfig.getToRepository());
+      RepositoryExpression toRepoExp = new RepositoryExpression(migrationConfig.getTo());
       Writer toWriter;
       try {
         toWriter = writerFactory.createWriter(toRepoExp, context);
@@ -189,7 +189,7 @@ public class MigrateBranchDirective extends Directive {
         // For each migration, the reference to-codebase for inverse translation is the Writer,
         // since it contains the latest changes (i.e. previous migrations) to the to-repository.
         Expression referenceTargetCodebase =
-            new RepositoryExpression(migrationConfig.getToRepository())
+            new RepositoryExpression(migrationConfig.getTo())
                 .withOption("localroot", toWriter.getRoot().getAbsolutePath());
 
         try (Task performMigration =
@@ -213,7 +213,7 @@ public class MigrateBranchDirective extends Directive {
                 expressionEngine.createCodebase(
                     fromExpression,
                     contextWithForkedRepository(
-                        context, migrationConfig.getFromRepository(), fromRepoType));
+                        context, migrationConfig.getFrom(), fromRepoType));
 
           } catch (CodebaseCreationError e) {
             throw new MoeProblem("%s", e.getMessage());
@@ -241,7 +241,7 @@ public class MigrateBranchDirective extends Directive {
     }
     ui.message(
         "Created Draft workspace:\n%s in repository '%s'",
-        draftRevisionLocation, migrationConfig.getToRepository());
+        draftRevisionLocation, migrationConfig.getTo());
     return 0;
   }
 
@@ -294,7 +294,7 @@ public class MigrateBranchDirective extends Directive {
             .migrationConfigs()
             .values()
             .stream()
-            .filter(input -> input.getFromRepository().equals(originalFromRepository))
+            .filter(input -> input.getFrom().equals(originalFromRepository))
             .collect(toImmutableList());
     switch (configs.size()) {
       case 0:
@@ -398,7 +398,7 @@ public class MigrateBranchDirective extends Directive {
         if (!commitsInParentBranch.contains(revision.revId())) {
           commitsInParentBranch.add(revision.revId());
           RevisionMetadata metadata =
-              parentBranch.getMetadata(Revision.create(revision.revId(), parentRepositoryName));
+              parentBranch.getMetadata(new Revision(revision.revId(), parentRepositoryName));
           if (metadata == null) {
             throw new MoeProblem("Could not load revision metadata for %s", revision);
           }
@@ -431,7 +431,7 @@ public class MigrateBranchDirective extends Directive {
 
     return commitsNotInDestinationBranch
         .stream()
-        .map(revId -> Revision.create(revId, repositoryName))
+        .map(revId -> new Revision(revId, repositoryName))
         .collect(toImmutableList())
         .reverse();
   }

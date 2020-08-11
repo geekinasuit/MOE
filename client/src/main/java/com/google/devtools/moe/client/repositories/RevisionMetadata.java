@@ -150,7 +150,7 @@ public abstract class RevisionMetadata {
       descBuilder.add(
           "Created by MOE: https://github.com/google/moe\n"
               + "MOE_MIGRATED_REVID="
-              + migrationFromRev.revId());
+              + migrationFromRev.getRevId());
     }
 
     return builder

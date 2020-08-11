@@ -67,7 +67,7 @@ public class DetermineMigrationsDirective extends Directive {
       throw new MoeProblem("No migration found with name %s", migrationName);
     }
 
-    RepositoryType fromRepo = context.getRepository(config.getFromRepository());
+    RepositoryType fromRepo = context.getRepository(config.getFrom());
     List<Migration> migrations = migrator.findMigrationsFromEquivalency(fromRepo, config);
     for (Migration migration : migrations) {
       ui.message("Pending migration: " + migration);

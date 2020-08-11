@@ -21,6 +21,7 @@ import com.google.devtools.moe.client.directives.Directives.SelectedDirective;
 import com.google.devtools.moe.client.qualifiers.Argument;
 import com.google.devtools.moe.client.qualifiers.Flag;
 import dagger.Provides;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,6 +67,16 @@ public class OptionsModule {
     // TODO(cgruber) Migrate to JCommander, so we don't have to manually parse some of these.
     // TODO(cgruber) make this not-nullable when only config-requiring commands yank in the config.
     return findArgValue(args, "-c", "--config", "--config_file");
+  }
+
+  @Provides
+  @Nullable
+  @Argument("working_dir")
+  static File workingDir(String... args) {
+    // TODO(cgruber) Migrate to JCommander, so we don't have to manually parse some of these.
+    // TODO(cgruber) make this not-nullable when only config-requiring commands yank in the config.
+    String arg = findArgValue(args, "--working_dir");
+    return arg == null ? null : new File(arg);
   }
 
   private static boolean isArgPresent(String[] args, String... matchingArgs) {

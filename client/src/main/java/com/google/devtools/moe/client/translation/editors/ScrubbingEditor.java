@@ -28,7 +28,7 @@ import com.google.devtools.moe.client.config.EditorConfig;
 import com.google.devtools.moe.client.InvalidProject;
 import com.google.devtools.moe.client.config.ScrubberConfig;
 import com.google.devtools.moe.client.tools.TarUtils;
-import com.google.gson.Gson;
+import com.squareup.moshi.Moshi;
 import dagger.Lazy;
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class ScrubbingEditor implements Editor, InverseEditor {
   private final ScrubberConfig scrubberConfig;
   private final TarUtils tarUtils;
   private final CodebaseMerger merger;
-  private final Gson gson;
+  private final Moshi moshi;
 
   ScrubbingEditor(
       @Provided CommandRunner cmd,
@@ -55,15 +55,15 @@ public class ScrubbingEditor implements Editor, InverseEditor {
       @Provided CodebaseMerger merger,
       String editorName,
       EditorConfig config,
-      @Provided Gson gson) {
+      @Provided Moshi moshi) {
     this.cmd = cmd;
     this.filesystem = filesystem;
     this.executable = executable;
     this.tarUtils = tarUtils;
     this.merger = merger;
     this.name = editorName;
-    this.scrubberConfig = config.scrubberConfig();
-    this.gson = gson;
+    this.scrubberConfig = config.getScrubberConfig();
+    this.moshi = moshi;
   }
 
   /**
@@ -98,7 +98,9 @@ public class ScrubbingEditor implements Editor, InverseEditor {
               outputTar.getAbsolutePath(),
               // TODO(dbentley): allow configuring the scrubber config
               "--config_data",
-              (scrubberConfig == null) ? "{}" : gson.toJson(scrubberConfig),
+              (scrubberConfig == null)
+                  ? "{}"
+                  : moshi.adapter(ScrubberConfig.class).indent("  ").toJson(scrubberConfig),
               input.root().getAbsolutePath()));
     } catch (CommandRunner.CommandException | IOException e) {
       throw new MoeProblem(e, "Problem executing the scrubber: %s", e.getMessage());

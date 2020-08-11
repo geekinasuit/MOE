@@ -17,6 +17,7 @@
 package com.google.devtools.moe.client.directives;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.devtools.moe.client.moshi.MoshiModule.provideMoshi;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -26,7 +27,10 @@ import com.google.devtools.moe.client.SystemFileSystem;
 import com.google.devtools.moe.client.Ui;
 import com.google.devtools.moe.client.codebase.ExpressionEngine;
 import com.google.devtools.moe.client.codebase.WriterFactory;
+import com.google.devtools.moe.client.config.ConfigParser;
+import com.google.devtools.moe.client.config.ProjectConfig;
 import com.google.devtools.moe.client.migrations.Migrator;
+import com.google.devtools.moe.client.moshi.MoshiProjectConfigParser;
 import com.google.devtools.moe.client.project.ProjectContext;
 import com.google.devtools.moe.client.repositories.MetadataScrubber;
 import com.google.devtools.moe.client.repositories.Repositories;
@@ -51,8 +55,9 @@ public class OneMigrationDirectiveTest extends TestCase {
   public void setUp() throws Exception {
     super.setUp();
     Repositories repositories = new Repositories(ImmutableSet.of(new DummyRepositoryFactory()));
+    ConfigParser<ProjectConfig> parser = new MoshiProjectConfigParser(provideMoshi());
     InMemoryProjectContextFactory contextFactory =
-        new InMemoryProjectContextFactory(null, ui, repositories);
+        new InMemoryProjectContextFactory(null, ui, repositories, parser);
     contextFactory.projectConfigs.put(
         "moe_config.txt",
         "{\"name\":\"foo\",\"repositories\":{"

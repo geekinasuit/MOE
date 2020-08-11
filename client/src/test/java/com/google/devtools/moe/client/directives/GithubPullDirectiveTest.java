@@ -23,12 +23,12 @@ import static com.google.devtools.moe.client.directives.GithubPullDirective.isGi
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.google.devtools.moe.client.MoeUserProblem;
+import com.google.devtools.moe.client.moshi.MoshiModule;
 import com.google.devtools.moe.client.Ui;
 import com.google.devtools.moe.client.github.GithubAPI.PullRequest;
 import com.google.devtools.moe.client.github.PullRequestUrl;
-import com.google.devtools.moe.client.GsonModule;
 import com.google.devtools.moe.client.config.RepositoryConfig;
-import com.google.gson.Gson;
+import com.squareup.moshi.Moshi;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -41,7 +41,7 @@ import junit.framework.TestCase;
  */
 
 public class GithubPullDirectiveTest extends TestCase {
-  private static final Gson GSON = GsonModule.provideGson();
+  private static final Moshi MOSHI = MoshiModule.provideMoshi();
 
   public void testIsGithubUrlAndMapsToPull() throws Exception {
     assertThat(isGithubRepositoryUrl(null, null)).isFalse();
@@ -82,10 +82,11 @@ public class GithubPullDirectiveTest extends TestCase {
             .getClassLoader()
             .getResource("com/google/devtools/moe/client/github/pull_request.json");
     String pullRequestJson = Resources.toString(resourcesUrl, StandardCharsets.UTF_8);
-    PullRequest pr = GSON.fromJson(pullRequestJson, PullRequest.class);
-    String config = "{\"name\":\"github\",\"url\":\"git@github.com:google/MOE.git\"}";
+    PullRequest pr = MOSHI.adapter(PullRequest.class).fromJson(pullRequestJson);
+    String config =
+        "{\"name\":\"github\",\"type\":\"git\",\"url\":\"git@github.com:google/MOE.git\"}";
     Map<String, RepositoryConfig> repositories =
-        ImmutableMap.of("github",  GSON.fromJson(config, RepositoryConfig.class));
+        ImmutableMap.of("github",  MOSHI.adapter(RepositoryConfig.class).fromJson(config));
     assertThat(findRepoConfig(repositories, pr)).isEqualTo("github");
   }
 
@@ -95,10 +96,10 @@ public class GithubPullDirectiveTest extends TestCase {
             .getClassLoader()
             .getResource("com/google/devtools/moe/client/github/pull_request.json");
     String pullRequestJson = Resources.toString(resourcesUrl, StandardCharsets.UTF_8);
-    PullRequest pr = GSON.fromJson(pullRequestJson, PullRequest.class);
-    String config = "{\"name\":\"foo\",\"url\":\"git@github.com:google/test.git\"}";
+    PullRequest pr = MOSHI.adapter(PullRequest.class).fromJson(pullRequestJson);
+    String config = "{\"name\":\"foo\",\"type\":\"g\",\"url\":\"git@github.com:google/test.git\"}";
     Map<String, RepositoryConfig> repositories =
-        ImmutableMap.of("foo",  GSON.fromJson(config, RepositoryConfig.class));
+        ImmutableMap.of("foo",  MOSHI.adapter(RepositoryConfig.class).fromJson(config));
     try {
       findRepoConfig(repositories, pr);
       fail("Should have thrown.");

@@ -17,9 +17,13 @@
 package com.google.devtools.moe.client.directives;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.devtools.moe.client.moshi.MoshiModule.provideMoshi;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.devtools.moe.client.Ui;
+import com.google.devtools.moe.client.config.ConfigParser;
+import com.google.devtools.moe.client.config.ProjectConfig;
+import com.google.devtools.moe.client.moshi.MoshiProjectConfigParser;
 import com.google.devtools.moe.client.project.ProjectContext;
 import com.google.devtools.moe.client.repositories.Repositories;
 import com.google.devtools.moe.client.repositories.RepositoryType;
@@ -33,8 +37,9 @@ public class HighestRevisionDirectiveTest extends TestCase {
   private final Ui ui = new Ui(stream, /* fileSystem */ null);
   private final Repositories repositories =
       new Repositories(ImmutableSet.<RepositoryType.Factory>of(new DummyRepositoryFactory()));
+  private final ConfigParser<ProjectConfig> parser = new MoshiProjectConfigParser(provideMoshi());
   private final InMemoryProjectContextFactory contextFactory =
-      new InMemoryProjectContextFactory(null, ui, repositories);
+      new InMemoryProjectContextFactory(null, ui, repositories, parser);
 
   public void testWithoutRevision() throws Exception {
     contextFactory.projectConfigs.put(

@@ -1,15 +1,18 @@
+load("@io_bazel_rules_kotlin//kotlin:kotlin.bzl", "kt_jvm_binary", "kt_jvm_library")
+
 package(default_visibility = ["//client:__subpackages__"])
 
-java_library(
+kt_jvm_library(
     name = "config",
-    srcs = glob(["*.java", "*.kt"]),
-    javacopts = ["-Aautovaluegson.defaultCollectionsToEmpty=true"],
+    srcs = glob([
+        "*.java",
+        "*.kt",
+    ]),
     deps = [
         "//client/src/main/java/com/google/devtools/moe/client:core",
-        "//client/src/main/java/com/google/devtools/moe/client/gson",
-        "@maven//com/google/code/findbugs:jsr305",
         "@maven//com/google/auto/value",
-        "@maven//com/google/code/gson",
+        "@maven//com/google/code/findbugs:jsr305",
         "@maven//com/google/guava",
+        "@maven//com/squareup/moshi",
     ],
 )

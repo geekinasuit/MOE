@@ -17,6 +17,7 @@
 package com.google.devtools.moe.client.directives;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.devtools.moe.client.moshi.MoshiModule.provideMoshi;
 import static org.easymock.EasyMock.expect;
 
 import com.google.common.collect.ImmutableList;
@@ -25,6 +26,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.devtools.moe.client.CommandRunner;
 import com.google.devtools.moe.client.FileSystem;
 import com.google.devtools.moe.client.Lifetimes;
+import com.google.devtools.moe.client.config.ConfigParser;
+import com.google.devtools.moe.client.config.ProjectConfig;
+import com.google.devtools.moe.client.moshi.MoshiModule;
 import com.google.devtools.moe.client.Ui;
 import com.google.devtools.moe.client.codebase.ExpressionEngine;
 import com.google.devtools.moe.client.database.Bookkeeper;
@@ -33,7 +37,7 @@ import com.google.devtools.moe.client.database.DbStorage;
 import com.google.devtools.moe.client.database.FileDb;
 import com.google.devtools.moe.client.database.RepositoryEquivalence;
 import com.google.devtools.moe.client.database.SubmittedMigration;
-import com.google.devtools.moe.client.GsonModule;
+import com.google.devtools.moe.client.moshi.MoshiProjectConfigParser;
 import com.google.devtools.moe.client.project.ProjectContext;
 import com.google.devtools.moe.client.repositories.Repositories;
 import com.google.devtools.moe.client.repositories.RepositoryType;
@@ -45,6 +49,7 @@ import com.google.devtools.moe.client.testing.TestingUtils;
 import com.google.devtools.moe.client.tools.CodebaseDiffer;
 import com.google.devtools.moe.client.tools.FileDifference.ConcreteFileDiffer;
 import com.google.devtools.moe.client.tools.FileDifference.FileDiffer;
+import com.squareup.moshi.Moshi;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import junit.framework.TestCase;
@@ -62,6 +67,8 @@ import org.easymock.IMocksControl;
  */
 public class BookkeepingDirectiveTest extends TestCase {
   private static final File DB_FILE = new File("/path/to/db");
+  private static final Moshi MOSHI = MoshiModule.provideMoshi();
+  private final ConfigParser<ProjectConfig> projectConfigParser = new MoshiProjectConfigParser(provideMoshi());
   private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
   private final IMocksControl control = EasyMock.createControl();
   private final CommandRunner cmd = control.createMock(CommandRunner.class);
@@ -77,8 +84,7 @@ public class BookkeepingDirectiveTest extends TestCase {
             + "\"translators\":[{\"from_project_space\":\"internal\","
             + "\"to_project_space\":\"public\",\"steps\":[{\"name\":\"id_step\","
             + "\"editor\":{\"type\":\"identity\"}}]}],"
-            + "\"migrations\":[{\"name\":\"test\",\"from_repository\":\"int\","
-            + "\"to_repository\":\"pub\"}]}");
+            + "\"migrations\":[{\"name\":\"test\",\"from\":\"int\",\"to\":\"pub\"}]}");
     return contextFactory;
   }
 
@@ -123,11 +129,12 @@ public class BookkeepingDirectiveTest extends TestCase {
     Ui ui = new Ui(stream, filesystem);
     ExpressionEngine expressionEngine = TestingUtils.expressionEngineWithRepo(ui, filesystem, cmd);
     InMemoryProjectContextFactory contextFactory =
-        init(new InMemoryProjectContextFactory(expressionEngine, ui, repositories));
+        init(new InMemoryProjectContextFactory(
+            expressionEngine, ui, repositories, projectConfigParser));
     ProjectContext context = contextFactory.create("moe_config.txt");
     Db db =
         new FileDb(
-            DB_FILE.getPath(), storage, new FileDb.Writer(GsonModule.provideGson(), filesystem));
+            DB_FILE.getPath(), storage, new FileDb.Writer(MOSHI, filesystem));
     BookkeepingDirective d =
         new BookkeepingDirective(new Bookkeeper(context, codebaseDiffer, db, ui, expressionEngine));
     d.dbLocation = DB_FILE.getAbsolutePath();
@@ -147,7 +154,7 @@ public class BookkeepingDirectiveTest extends TestCase {
     // expected db at end of call to bookkeep
     DbStorage expectedDb = new DbStorage();
     expectedDb.addEquivalence(
-        RepositoryEquivalence.create(Revision.create(1, "int"), Revision.create(1, "pub")));
+        new RepositoryEquivalence(new Revision(1, "int"), new Revision(1, "pub")));
 
     assertThat(storage).isEqualTo(expectedDb);
   }
@@ -172,11 +179,12 @@ public class BookkeepingDirectiveTest extends TestCase {
     Ui ui = new Ui(stream, filesystem);
     ExpressionEngine expressionEngine = TestingUtils.expressionEngineWithRepo(ui, filesystem, cmd);
     InMemoryProjectContextFactory contextFactory =
-        init(new InMemoryProjectContextFactory(expressionEngine, ui, repositories));
+        init(new InMemoryProjectContextFactory(
+            expressionEngine, ui, repositories, projectConfigParser));
     ProjectContext context = contextFactory.create("moe_config.txt");
     Db db =
         new FileDb(
-            DB_FILE.getPath(), storage, new FileDb.Writer(GsonModule.provideGson(), filesystem));
+            DB_FILE.getPath(), storage, new FileDb.Writer(MOSHI, filesystem));
     BookkeepingDirective d =
         new BookkeepingDirective(new Bookkeeper(context, codebaseDiffer, db, ui, expressionEngine));
     d.dbLocation = DB_FILE.getAbsolutePath();
@@ -190,8 +198,8 @@ public class BookkeepingDirectiveTest extends TestCase {
     // expected db at end of call to bookkeep
     DbStorage expectedDb = new DbStorage();
     expectedDb.addMigration(
-        SubmittedMigration.create(
-            Revision.create("migrated_from", "int"), Revision.create("migrated_to", "pub")));
+        new SubmittedMigration(
+            new Revision("migrated_from", "int"), new Revision("migrated_to", "pub")));
 
     assertThat(storage).isEqualTo(expectedDb);
   }
@@ -216,11 +224,12 @@ public class BookkeepingDirectiveTest extends TestCase {
     Ui ui = new Ui(stream, filesystem);
     ExpressionEngine expressionEngine = TestingUtils.expressionEngineWithRepo(ui, filesystem, cmd);
     InMemoryProjectContextFactory contextFactory =
-        init(new InMemoryProjectContextFactory(expressionEngine, ui, repositories));
+        init(new InMemoryProjectContextFactory(
+            expressionEngine, ui, repositories, projectConfigParser));
     ProjectContext context = contextFactory.create("moe_config.txt");
     Db db =
         new FileDb(
-            DB_FILE.getPath(), storage, new FileDb.Writer(GsonModule.provideGson(), filesystem));
+            DB_FILE.getPath(), storage, new FileDb.Writer(MOSHI, filesystem));
     BookkeepingDirective d =
         new BookkeepingDirective(new Bookkeeper(context, codebaseDiffer, db, ui, expressionEngine));
     d.dbLocation = DB_FILE.getAbsolutePath();
@@ -234,11 +243,11 @@ public class BookkeepingDirectiveTest extends TestCase {
     // expected db at end of call to bookkeep
     DbStorage expectedDb = new DbStorage();
     expectedDb.addEquivalence(
-        RepositoryEquivalence.create(
-            Revision.create("migrated_from", "int"), Revision.create("migrated_to", "pub")));
+        new RepositoryEquivalence(
+            new Revision("migrated_from", "int"), new Revision("migrated_to", "pub")));
     expectedDb.addMigration(
-        SubmittedMigration.create(
-            Revision.create("migrated_from", "int"), Revision.create("migrated_to", "pub")));
+        new SubmittedMigration(
+            new Revision("migrated_from", "int"), new Revision("migrated_to", "pub")));
 
     assertThat(storage).isEqualTo(expectedDb);
   }

@@ -38,7 +38,7 @@ public class RevisionMetadataTest {
   @Test
   public void testConcatenate_singleMetadata() {
     RevisionMetadata rm =
-        DEFAULT_TEST_METADATA.toBuilder().withParents(Revision.create("revId", "repo")).build();
+        DEFAULT_TEST_METADATA.toBuilder().withParents(new Revision("revId", "repo")).build();
 
     assertThat(RevisionMetadata.concatenate(ImmutableList.of(rm), null)).isEqualTo(rm);
   }
@@ -65,7 +65,7 @@ public class RevisionMetadataTest {
             .author("auth1")
             .date(new DateTime(1L))
             .description("description1")
-            .withParents(Revision.create("revId1", "repo"))
+            .withParents(new Revision("revId1", "repo"))
             .build();
     RevisionMetadata rm2 =
         RevisionMetadata.builder()
@@ -73,7 +73,7 @@ public class RevisionMetadataTest {
             .author("auth2")
             .date(new DateTime(2L))
             .description("description2")
-            .withParents(Revision.create("revId2", "repo"))
+            .withParents(new Revision("revId2", "repo"))
             .build();
 
     RevisionMetadata rmExpected =
@@ -82,7 +82,7 @@ public class RevisionMetadataTest {
             .author("auth1, auth2")
             .date(new DateTime(2L))
             .description("description1\n\n-------------\ndescription2")
-            .withParents(Revision.create("revId1", "repo"), Revision.create("revId2", "repo"))
+            .withParents(new Revision("revId1", "repo"), new Revision("revId2", "repo"))
             .build();
     rmExpected = parseLegacyFields(rmExpected);
 
@@ -98,7 +98,7 @@ public class RevisionMetadataTest {
             .author("auth1")
             .date(new DateTime(1L))
             .description("description1")
-            .withParents(Revision.create("revId1", "repo"))
+            .withParents(new Revision("revId1", "repo"))
             .build();
     RevisionMetadata rm2 =
         RevisionMetadata.builder()
@@ -106,10 +106,10 @@ public class RevisionMetadataTest {
             .author("auth2")
             .date(new DateTime(2L))
             .description("description2")
-            .withParents(Revision.create("revId2", "repo"))
+            .withParents(new Revision("revId2", "repo"))
             .build();
 
-    Revision migrationFromRev = Revision.create("migrationRevId", "repo");
+    Revision migrationFromRev = new Revision("migrationRevId", "repo");
 
     RevisionMetadata rmExpected =
         RevisionMetadata.builder()
@@ -121,7 +121,7 @@ public class RevisionMetadataTest {
                     + "\n\n-------------\nCreated by MOE: https://github.com/google/moe\n"
                     + "MOE_MIGRATED_REVID="
                     + migrationFromRev.revId())
-            .withParents(Revision.create("revId1", "repo"), Revision.create("revId2", "repo"))
+            .withParents(new Revision("revId1", "repo"), new Revision("revId2", "repo"))
             .build();
     rmExpected = parseLegacyFields(rmExpected);
 

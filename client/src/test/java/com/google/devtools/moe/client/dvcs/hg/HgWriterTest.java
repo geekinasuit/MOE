@@ -43,7 +43,7 @@ public class HgWriterTest extends TestCase {
 
   private final IMocksControl control = EasyMock.createControl();
   private final FileSystem mockFs = control.createMock(FileSystem.class);
-  private final RepositoryConfig mockRepoConfig = control.createMock(RepositoryConfig.class);
+  private final RepositoryConfig mockRepoConfig = RepositoryConfig.fakeRepositoryConfig();
   private final Codebase codebase = Codebase.create(CODEBASE_ROOT, PROJECT_SPACE, CODEBASE_EXPR);
   private final HgClonedRepository mockRevClone = control.createMock(HgClonedRepository.class);
   private final Ui ui = new Ui(System.err);
@@ -63,8 +63,6 @@ public class HgWriterTest extends TestCase {
 
     expect(mockRevClone.getLocalTempDir()).andReturn(WRITER_ROOT).anyTimes();
     expect(mockRevClone.getConfig()).andReturn(mockRepoConfig).anyTimes();
-    expect(mockRepoConfig.getIgnoreFilePatterns()).andReturn(ImmutableList.<String>of()).anyTimes();
-    expect(mockRepoConfig.getProjectSpace()).andReturn(PROJECT_SPACE).anyTimes();
   }
 
   public void testPutCodebase_emptyCodebase() throws Exception {

@@ -17,15 +17,19 @@
 package com.google.devtools.moe.client.directives;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.devtools.moe.client.moshi.MoshiModule.provideMoshi;
 import static org.easymock.EasyMock.expectLastCall;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.devtools.moe.client.MoeProblem;
 import com.google.devtools.moe.client.Ui;
+import com.google.devtools.moe.client.config.ConfigParser;
+import com.google.devtools.moe.client.config.ProjectConfig;
 import com.google.devtools.moe.client.database.Db;
 import com.google.devtools.moe.client.database.DbStorage;
 import com.google.devtools.moe.client.database.FileDb;
 import com.google.devtools.moe.client.database.RepositoryEquivalence;
+import com.google.devtools.moe.client.moshi.MoshiProjectConfigParser;
 import com.google.devtools.moe.client.project.ProjectContext;
 import com.google.devtools.moe.client.repositories.Repositories;
 import com.google.devtools.moe.client.repositories.RepositoryType;
@@ -42,8 +46,9 @@ public class NoteEquivalenceDirectiveTest extends TestCase {
   private final Ui ui = new Ui(stream, /* fileSystem */ null);
   private final Repositories repositories =
       new Repositories(ImmutableSet.<RepositoryType.Factory>of(new DummyRepositoryFactory()));
+  private final ConfigParser<ProjectConfig> parser = new MoshiProjectConfigParser(provideMoshi());
   private final InMemoryProjectContextFactory contextFactory =
-      new InMemoryProjectContextFactory(null, ui, repositories);
+      new InMemoryProjectContextFactory(null, ui, repositories, parser);
   private final IMocksControl control = EasyMock.createControl();
   private final FileDb.Writer dbWriter = control.createMock(FileDb.Writer.class);
   private final DbStorage dbStorage = new DbStorage();
@@ -56,7 +61,7 @@ public class NoteEquivalenceDirectiveTest extends TestCase {
     super.setUp();
     contextFactory.projectConfigs.put(
         "moe_config.txt",
-        "{'name': 'foo', 'database_file': '/foo/db.txt', 'repositories': {"
+        "{'name': 'foo', 'database_uri': 'file:///foo/db.txt', 'repositories': {"
             + "  'internal': {'type': 'dummy'}, 'public': {'type': 'dummy'}"
             + "}}");
     ProjectContext context = contextFactory.create("moe_config.txt");
@@ -92,7 +97,7 @@ public class NoteEquivalenceDirectiveTest extends TestCase {
 
     DbStorage expectedStorage = new DbStorage();
     expectedStorage.addEquivalence(
-        RepositoryEquivalence.create(Revision.create(1, "internal"), Revision.create(4, "public")));
+        new RepositoryEquivalence(new Revision(1, "internal"), new Revision(4, "public")));
     assertThat(dbStorage).isEqualTo(expectedStorage);
   }
 
@@ -101,7 +106,7 @@ public class NoteEquivalenceDirectiveTest extends TestCase {
     d.repo2 = "public(revision=4)";
 
     dbStorage.addEquivalence(
-        RepositoryEquivalence.create(Revision.create(0, "internal"), Revision.create(3, "public")));
+        new RepositoryEquivalence(new Revision(0, "internal"), new Revision(3, "public")));
 
     dbWriter.write(db);
     expectLastCall();
@@ -112,9 +117,9 @@ public class NoteEquivalenceDirectiveTest extends TestCase {
 
     DbStorage expectedStorage = new DbStorage();
     expectedStorage.addEquivalence(
-        RepositoryEquivalence.create(Revision.create(0, "internal"), Revision.create(3, "public")));
+        new RepositoryEquivalence(new Revision(0, "internal"), new Revision(3, "public")));
     expectedStorage.addEquivalence(
-        RepositoryEquivalence.create(Revision.create(1, "internal"), Revision.create(4, "public")));
+        new RepositoryEquivalence(new Revision(1, "internal"), new Revision(4, "public")));
     assertThat(dbStorage).isEqualTo(expectedStorage);
   }
 }

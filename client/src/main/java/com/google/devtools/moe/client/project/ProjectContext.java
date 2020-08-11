@@ -62,7 +62,7 @@ public abstract class ProjectContext {
   public static class NoopProjectContext extends ProjectContext {
     @Override
     public ProjectConfig config() {
-      return ProjectConfig.builder().name("noop project").build();
+      return ProjectConfig.createNoop("noop project");
     }
 
     @Override

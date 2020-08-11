@@ -21,13 +21,13 @@ import com.google.devtools.moe.client.InvalidProject;
 import com.google.devtools.moe.client.Ui;
 import com.google.devtools.moe.client.Ui.Task;
 import com.google.devtools.moe.client.codebase.ExpressionEngine;
+import com.google.devtools.moe.client.config.ConfigParser;
 import com.google.devtools.moe.client.config.ProjectConfig;
 import com.google.devtools.moe.client.config.ScrubberConfig;
 import com.google.devtools.moe.client.config.TranslatorConfig;
 import com.google.devtools.moe.client.config.UsernamesConfig;
 import com.google.devtools.moe.client.repositories.Repositories;
 import com.google.devtools.moe.client.translation.editors.Editors;
-import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
 import javax.inject.Inject;
@@ -37,15 +37,20 @@ import javax.inject.Inject;
  */
 public class FileReadingProjectContextFactory extends ProjectContextFactory {
   private final FileSystem fileSystem;
-  private final Gson gson;
+  private final ConfigParser<UsernamesConfig> usernameConfigParser;
 
   @Inject
   public FileReadingProjectContextFactory(
-      ExpressionEngine expressionEngine, Ui ui, Repositories repositories, Editors editors,
-      FileSystem fileSystem, Gson gson) {
-    super(expressionEngine, ui, repositories, editors);
+      ExpressionEngine expressionEngine,
+      Ui ui,
+      Repositories repositories,
+      Editors editors,
+      FileSystem fileSystem,
+      ConfigParser<ProjectConfig> projectConfigParser,
+      ConfigParser<UsernamesConfig> usernameConfigParser) {
+    super(expressionEngine, ui, repositories, editors, projectConfigParser);
     this.fileSystem = fileSystem;
-    this.gson = gson;
+    this.usernameConfigParser = usernameConfigParser;
   }
 
   @Override
@@ -53,7 +58,7 @@ public class FileReadingProjectContextFactory extends ProjectContextFactory {
     String configText;
     try (Task t = ui.newTask("read_config", "Reading config file from %s", configFilename)) {
       configText = fileSystem.fileToString(new File(configFilename));
-      return ProjectConfigs.parse(configText);
+      return projectConfigParser.parse(configText);
     } catch (IOException e) {
       throw new InvalidProject("Config File \"" + configFilename + "\" not accessible.");
     }
@@ -61,7 +66,7 @@ public class FileReadingProjectContextFactory extends ProjectContextFactory {
 
   @Override
   public void loadUsernamesFiles(ProjectConfig config) {
-    for (TranslatorConfig translatorConfig : config.translators()) {
+    for (TranslatorConfig translatorConfig : config.getTranslators()) {
       for (ScrubberConfig scrubberConfig : translatorConfig.scrubbers()) {
         if (scrubberConfig == null || scrubberConfig.getUsernamesFile() == null) {
           continue;
@@ -76,7 +81,7 @@ public class FileReadingProjectContextFactory extends ProjectContextFactory {
 
     try (Task t =
         ui.newTask("read_usernames_file", "Reading usernames file from %s", usernamesFilePath)) {
-      return gson.fromJson(fileSystem.fileToString(usernamesFile), UsernamesConfig.class);
+      return usernameConfigParser.parse(fileSystem.fileToString(usernamesFile));
     } catch (IOException exception) {
       throw new InvalidProject(
           "File " + usernamesFilePath + " referenced by usernames_file not found.");

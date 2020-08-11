@@ -1,4 +1,3 @@
-
 _DAGGER = """
 java_library(
     name = "dagger",
@@ -57,9 +56,8 @@ java_library(
     name = "value",
     exports = [
         ":auto-value-annotations",
-        "@maven//com/ryanharter/auto/value:auto-value-gson-annotations",
     ],
-    exported_plugins = [":plugin", ":gson-plugin"],
+    exported_plugins = [":plugin"],
     visibility = ["//visibility:public"],
 )
 
@@ -73,16 +71,9 @@ java_plugin(
     name = "plugin",
     processor_class = "com.google.auto.value.processor.AutoValueProcessor",
     generates_api = True,
-    deps = [":auto-value"],
-)
-
-java_plugin(
-    name = "gson-plugin",
-    processor_class = "com.ryanharter.auto.value.gson.AutoValueGsonAdapterFactoryProcessor",
-    generates_api = True,
     deps = [
-        "@//tools/auto/generated/javax/annotation:generated", # For compiling with java9+
-        "@maven//com/ryanharter/auto/value:auto-value-gson",
+        ":auto-value",
+        "@maven//com/google/auto:auto-common",
     ],
 )
 """

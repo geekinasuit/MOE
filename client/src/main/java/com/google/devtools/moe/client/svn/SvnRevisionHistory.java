@@ -83,7 +83,7 @@ public class SvnRevisionHistory extends AbstractRevisionHistory {
       ImmutableList.Builder<Revision> resultBuilder = ImmutableList.builder();
       for (int i = 0; i < nl.getLength(); i++) {
         String revId = nl.item(i).getAttributes().getNamedItem("revision").getNodeValue();
-        resultBuilder.add(Revision.create(revId, repositoryName));
+        resultBuilder.add(new Revision(revId, repositoryName));
       }
       return resultBuilder.build();
     } catch (Exception e) {
@@ -138,7 +138,7 @@ public class SvnRevisionHistory extends AbstractRevisionHistory {
               nl.item(i + 1).getAttributes().getNamedItem("revision").getNodeValue();
           resultBuilder.add(
               parseMetadataNodeList(
-                  revId, nlEntries, ImmutableList.of(Revision.create(parentId, name))));
+                  revId, nlEntries, ImmutableList.of(new Revision(parentId, name))));
         }
       }
       return resultBuilder.build();

@@ -30,7 +30,7 @@ import java.util.Set;
  */
 public abstract class AbstractRevisionHistory implements RevisionHistory {
 
-  private static final int MAX_REVISIONS_TO_SEARCH = 400;
+  private static final int MAX_REVISIONS_TO_SEARCH = 10000;
 
   @Override
   public final RevisionMetadata getMetadata(Revision revision) {

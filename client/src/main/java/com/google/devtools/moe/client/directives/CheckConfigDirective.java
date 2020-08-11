@@ -40,7 +40,7 @@ public class CheckConfigDirective extends Directive {
 
   @Override
   protected int performDirectiveBehavior() {
-    ui.message("Successfully parsed configuration for project %s", context.config().name());
+    ui.message("Successfully parsed configuration for project %s", context.config().getName());
     return 0;
   }
 

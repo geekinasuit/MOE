@@ -17,6 +17,7 @@
 package com.google.devtools.moe.client.dvcs.hg;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.devtools.moe.client.moshi.MoshiModule.provideMoshi;
 import static org.easymock.EasyMock.expect;
 
 import com.google.common.base.Suppliers;
@@ -29,7 +30,6 @@ import com.google.devtools.moe.client.database.FileDb;
 import com.google.devtools.moe.client.database.RepositoryEquivalence;
 import com.google.devtools.moe.client.database.RepositoryEquivalenceMatcher;
 import com.google.devtools.moe.client.database.RepositoryEquivalenceMatcher.Result;
-import com.google.devtools.moe.client.GsonModule;
 import com.google.devtools.moe.client.config.RepositoryConfig;
 import com.google.devtools.moe.client.repositories.Revision;
 import com.google.devtools.moe.client.repositories.RevisionHistory.SearchType;
@@ -55,9 +55,11 @@ public class HgRevisionHistoryTest extends TestCase {
 
   private final IMocksControl control = EasyMock.createControl();
   private final CommandRunner cmd = control.createMock(CommandRunner.class);
-  private final RepositoryConfig config = control.createMock(RepositoryConfig.class);
+  private final RepositoryConfig config = RepositoryConfig.fakeRepositoryConfig()
+      .copyWithBranch("mybranch");
 
   private HgClonedRepository mockClonedRepo(String repoName) {
+
     HgClonedRepository mockRepo = control.createMock(HgClonedRepository.class);
     expect(mockRepo.getRepositoryName()).andReturn(repoName).anyTimes();
     expect(mockRepo.getLocalTempDir()).andReturn(new File(CLONE_TEMP_DIR)).anyTimes();
@@ -144,14 +146,14 @@ public class HgRevisionHistoryTest extends TestCase {
 
     HgRevisionHistory revHistory =
         new HgRevisionHistory(cmd, HG_CMD, Suppliers.ofInstance(mockRepo));
-    RevisionMetadata result = revHistory.getMetadata(Revision.create(2, "mockrepo"));
+    RevisionMetadata result = revHistory.getMetadata(new Revision(2, "mockrepo"));
     assertEquals("2", result.id());
     assertEquals("uid@google.com", result.author());
     assertThat(result.date()).isEquivalentAccordingToCompareTo(DATE);
     assertEquals("description", result.description());
     assertEquals(
         ImmutableList.of(
-            Revision.create("parent1", MOCK_REPO_NAME), Revision.create("parent2", MOCK_REPO_NAME)),
+            new Revision("parent1", MOCK_REPO_NAME), new Revision("parent2", MOCK_REPO_NAME)),
         result.parents());
 
     control.verify();
@@ -179,12 +181,12 @@ public class HgRevisionHistoryTest extends TestCase {
 
     HgRevisionHistory revHistory =
         new HgRevisionHistory(cmd, HG_CMD, Suppliers.ofInstance(mockRepo));
-    RevisionMetadata result = revHistory.getMetadata(Revision.create(2, "mockrepo"));
+    RevisionMetadata result = revHistory.getMetadata(new Revision(2, "mockrepo"));
     assertEquals("2", result.id());
     assertEquals("u<id@google.com", result.author());
     assertThat(result.date()).isEquivalentAccordingToCompareTo(DATE);
     assertEquals(">description&amp", result.description());
-    assertEquals(ImmutableList.of(Revision.create("parent", MOCK_REPO_NAME)), result.parents());
+    assertEquals(ImmutableList.of(new Revision("parent", MOCK_REPO_NAME)), result.parents());
 
     control.verify();
   }
@@ -201,7 +203,7 @@ public class HgRevisionHistoryTest extends TestCase {
     assertEquals("foo@google.com", rm.author());
     assertThat(rm.date()).isEquivalentAccordingToCompareTo(DATE);
     assertEquals("foo", rm.description());
-    assertEquals(ImmutableList.of(Revision.create("p1", MOCK_REPO_NAME)), rm.parents());
+    assertEquals(ImmutableList.of(new Revision("p1", MOCK_REPO_NAME)), rm.parents());
 
     control.verify();
   }
@@ -291,8 +293,8 @@ public class HgRevisionHistoryTest extends TestCase {
    */
   private final String testDb1 =
       "{\"equivalences\":["
-          + "{\"rev1\": {\"revId\":\"1002\",\"repositoryName\":\"repo1\"},"
-          + " \"rev2\": {\"revId\":\"2\",\"repositoryName\":\"repo2\"}}]}";
+          + "{\"rev1\": {\"rev_id\":\"1002\",\"repository_name\":\"repo1\"},"
+          + " \"rev2\": {\"rev_id\":\"2\",\"repository_name\":\"repo2\"}}]}";
 
   /**
    * A test for finding the last equivalence for the following history starting
@@ -374,7 +376,7 @@ public class HgRevisionHistoryTest extends TestCase {
     control.replay();
 
     FileDb database =
-        new FileDb(null, GsonModule.provideGson().fromJson(testDb1, DbStorage.class), null);
+        new FileDb(null, provideMoshi().adapter(DbStorage.class).fromJson(testDb1), null);
 
     HgRevisionHistory history = new HgRevisionHistory(cmd, HG_CMD, Suppliers.ofInstance(mockRepo));
 
@@ -383,8 +385,8 @@ public class HgRevisionHistoryTest extends TestCase {
             null, new RepositoryEquivalenceMatcher("repo1", database), SearchType.BRANCHED);
 
     RepositoryEquivalence expectedEq =
-        RepositoryEquivalence.create(
-            Revision.create(1002, "repo1"), Revision.create(2, "repo2"));
+        new RepositoryEquivalence(
+            new Revision(1002, "repo1"), new Revision(2, "repo2"));
     assertEquals(ImmutableList.of(expectedEq), result.getEquivalences());
 
     control.verify();
@@ -396,8 +398,8 @@ public class HgRevisionHistoryTest extends TestCase {
    */
   private final String testDb2 =
       "{\"equivalences\":["
-          + "{\"rev1\": {\"revId\":\"1005\",\"repositoryName\":\"repo1\"},"
-          + " \"rev2\": {\"revId\":\"5\",\"repositoryName\":\"repo2\"}}]}";
+          + "{\"rev1\": {\"rev_id\":\"1005\",\"repository_name\":\"repo1\"},"
+          + " \"rev2\": {\"rev_id\":\"5\",\"repository_name\":\"repo2\"}}]}";
 
   /**
    * A test for finding the last equivalence for the following history starting
@@ -492,12 +494,12 @@ public class HgRevisionHistoryTest extends TestCase {
     control.replay();
 
     FileDb database =
-        new FileDb(null, GsonModule.provideGson().fromJson(testDb2, DbStorage.class), null);
+        new FileDb(null, provideMoshi().adapter(DbStorage.class).fromJson(testDb2), null);
 
     HgRevisionHistory history = new HgRevisionHistory(cmd, HG_CMD, Suppliers.ofInstance(mockRepo));
     Result result =
         history.findRevisions(
-            Revision.create(4, "repo2"),
+            new Revision(4, "repo2"),
             new RepositoryEquivalenceMatcher("repo1", database),
             SearchType.BRANCHED);
 

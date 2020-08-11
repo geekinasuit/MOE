@@ -59,9 +59,9 @@ public class MigrateBranchDirectiveTest extends TestCase {
 
     assertThat(revisions)
         .containsExactly(
-            Revision.create("5", "foo_fork"),
-            Revision.create("6", "foo_fork"),
-            Revision.create("7", "foo_fork"),
-            Revision.create("8", "foo_fork"));
+            new Revision("5", "foo_fork"),
+            new Revision("6", "foo_fork"),
+            new Revision("7", "foo_fork"),
+            new Revision("8", "foo_fork"));
   }
 }

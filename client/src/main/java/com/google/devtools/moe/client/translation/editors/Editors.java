@@ -47,10 +47,10 @@ public class Editors {
   }
 
   public Editor makeEditorFromConfig(String name, EditorConfig config) throws InvalidProject {
-    if (editorFactories.containsKey(config.type())) {
-      return editorFactories.get(config.type()).newEditor(name, config);
+    if (editorFactories.containsKey(config.getType())) {
+      return editorFactories.get(config.getType()).newEditor(name, config);
     }
-    throw new InvalidProject("Invalid editor type: \"%s\"", config.type());
+    throw new InvalidProject("Invalid editor type: \"%s\"", config.getType());
   }
 
   public InverseEditor makeInverseEditorFromConfig(String name, EditorConfig originalConfig)
@@ -59,7 +59,7 @@ public class Editors {
     if (forward instanceof InverseEditor) {
       return ((InverseEditor) forward).validateInversion();
     }
-    throw new InvalidProject("Non-invertible editor type: " + originalConfig.type());
+    throw new InvalidProject("Non-invertible editor type: " + originalConfig.getType());
   }
 
   /**

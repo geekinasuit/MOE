@@ -110,7 +110,7 @@ public class Bookkeeper {
    */
   private RepositoryEquivalence determineEquivalence(Revision fromRevision, Revision toRevision) {
     String toSpace =
-        context.config().getRepositoryConfig(toRevision.repositoryName()).getProjectSpace();
+        context.config().getRepositoryConfig(toRevision.getRepositoryName()).getProjectSpace();
     Codebase from = createCodebaseForRevision(fromRevision, toSpace);
     Codebase to = createCodebaseForRevision(toRevision, null);
     if (from == null || to == null) {
@@ -121,7 +121,7 @@ public class Bookkeeper {
       equivalent = !differ.diffCodebases(from, to).areDifferent();
       task.result().append(equivalent ? "No Difference" : "Difference Found");
     }
-    return equivalent ? RepositoryEquivalence.create(fromRevision, toRevision) : null;
+    return equivalent ? new RepositoryEquivalence(fromRevision, toRevision) : null;
   }
 
   private Codebase createCodebaseForRevision(Revision rev, String translateSpace) {
@@ -169,7 +169,7 @@ public class Bookkeeper {
         String fromRevId = getMigratedRevId(toHistory.getMetadata(toRev));
         if (fromRevId != null) {
           SubmittedMigration migration =
-              SubmittedMigration.create(Revision.create(fromRevId, fromRepository), toRev);
+              new SubmittedMigration(new Revision(fromRevId, fromRepository), toRev);
           logger.fine("Processing submitted migration: " + migration);
           if (processMigration(migration, db, inverse) != null) {
             ui.message("Equivalence found - skipping remaining revisions in this migration.");
@@ -210,7 +210,7 @@ public class Bookkeeper {
       SubmittedMigration migration, Db db, boolean inverse) {
     if (db.hasMigration(migration)) {
       ui.message(
-          "Skipping: already recorded %s -> %s", migration.fromRevision(), migration.toRevision());
+          "Skipping: already recorded %s -> %s", migration.getFrom(), migration.getTo());
       return null;
     }
     RepositoryEquivalence equivalence;
@@ -218,8 +218,8 @@ public class Bookkeeper {
       // If an inverse translator, use the forward translator (but backwards)
       equivalence =
           (inverse)
-              ? determineEquivalence(migration.toRevision(), migration.fromRevision())
-              : determineEquivalence(migration.fromRevision(), migration.toRevision());
+              ? determineEquivalence(migration.getTo(), migration.getFrom())
+              : determineEquivalence(migration.getFrom(), migration.getTo());
 
       if (equivalence != null) {
         db.noteEquivalence(equivalence);
@@ -249,8 +249,8 @@ public class Bookkeeper {
         bookkeepMigration(
             testedHeadEquivalences,
             config.getName(),
-            config.getFromRepository(),
-            config.getToRepository());
+            config.getFrom(),
+            config.getTo());
       }
     }
     db.write();

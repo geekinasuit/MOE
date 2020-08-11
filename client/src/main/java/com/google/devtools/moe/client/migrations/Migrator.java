@@ -115,7 +115,7 @@ public class Migrator {
       RepositoryType fromRepo, MigrationConfig migrationConfig) {
 
     Result equivMatch =
-        matchEquivalences(fromRepo.revisionHistory(), migrationConfig.getToRepository());
+        matchEquivalences(fromRepo.revisionHistory(), migrationConfig.getTo());
 
     List<Revision> revisionsSinceEquivalence =
         Lists.reverse(equivMatch.getRevisionsSinceEquivalence().getBreadthFirstHistory());
@@ -138,7 +138,7 @@ public class Migrator {
     ui.message(
         "Found %d revisions in %s since equivalence (%s): %s",
         revisionsSinceEquivalence.size(),
-        migrationConfig.getFromRepository(),
+        migrationConfig.getFrom(),
         lastEq,
         Joiner.on(", ").join(revisionsSinceEquivalence));
 
@@ -148,8 +148,8 @@ public class Migrator {
         migrations.add(
             Migration.create(
                 migrationConfig.getName(),
-                migrationConfig.getFromRepository(),
-                migrationConfig.getToRepository(),
+                migrationConfig.getFrom(),
+                migrationConfig.getTo(),
                 ImmutableList.of(fromRev),
                 lastEq));
       }
@@ -158,8 +158,8 @@ public class Migrator {
       return ImmutableList.of(
           Migration.create(
               migrationConfig.getName(),
-              migrationConfig.getFromRepository(),
-              migrationConfig.getToRepository(),
+              migrationConfig.getFrom(),
+              migrationConfig.getTo(),
               revisionsSinceEquivalence,
               lastEq));
     }

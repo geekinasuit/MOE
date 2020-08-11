@@ -71,12 +71,11 @@ public class SvnWriterCreatorTest extends TestCase {
 
   public void testCreate() throws Exception {
     SvnRevisionHistory revisionHistory = control.createMock(SvnRevisionHistory.class);
-    RepositoryConfig mockConfig = control.createMock(RepositoryConfig.class);
-    expect(mockConfig.getUrl()).andReturn("http://foo/svn/trunk/").anyTimes();
-    expect(mockConfig.getProjectSpace()).andReturn("internal").anyTimes();
-    expect(mockConfig.getIgnoreFilePatterns()).andReturn(ImmutableList.<String>of()).anyTimes();
+    RepositoryConfig config = RepositoryConfig.fakeRepositoryConfig()
+        .copyWithUrl("http://foo/svn/trunk/")
+        .copyWithProjectSpace("internal");
 
-    Revision result = Revision.create(45, "");
+    Revision result = new Revision(45, "");
     expect(fileSystem.getTemporaryDirectory("svn_writer_45_"))
         .andReturn(new File("/dummy/path/45"));
     expect(revisionHistory.findHighestRevision("45")).andReturn(result);
@@ -94,7 +93,7 @@ public class SvnWriterCreatorTest extends TestCase {
         .andReturn("");
 
     control.replay();
-    SvnWriterCreator c = new SvnWriterCreator(mockConfig, revisionHistory, util, fileSystem, ui);
+    SvnWriterCreator c = new SvnWriterCreator(config, revisionHistory, util, fileSystem, ui);
     c.create(ImmutableMap.of("revision", "45"));
     control.verify();
 

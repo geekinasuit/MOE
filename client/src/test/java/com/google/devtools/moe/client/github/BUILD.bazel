@@ -10,10 +10,11 @@ jvm_unit_test(
     name = "GithubClientTest",
     resources = [":resources"],
     deps = [
-        "//client/src/main/java/com/google/devtools/moe/client",
-        "@maven//com/google/code/gson",
+        "//client/src/main/java/com/google/devtools/moe/client/github",
+        "//client/src/main/java/com/google/devtools/moe/client/moshi",
         "@maven//com/google/guava",
         "@maven//com/google/truth",
+        "@maven//com/squareup/okhttp",
         "@maven//junit",
     ],
 )

@@ -17,11 +17,15 @@
 package com.google.devtools.moe.client.directives;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.devtools.moe.client.moshi.MoshiModule.provideMoshi;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.devtools.moe.client.Ui;
+import com.google.devtools.moe.client.config.ConfigParser;
+import com.google.devtools.moe.client.config.ProjectConfig;
 import com.google.devtools.moe.client.migrations.Migrator;
+import com.google.devtools.moe.client.moshi.MoshiProjectConfigParser;
 import com.google.devtools.moe.client.project.ProjectContext;
 import com.google.devtools.moe.client.repositories.MetadataScrubber;
 import com.google.devtools.moe.client.repositories.Repositories;
@@ -41,8 +45,9 @@ public class DetermineMetadataDirectiveTest extends TestCase {
   private final Ui ui = new Ui(stream, /* fileSystem */ null);
   private final Repositories repositories =
       new Repositories(ImmutableSet.<RepositoryType.Factory>of(new DummyRepositoryFactory()));
+  private final ConfigParser<ProjectConfig> parser = new MoshiProjectConfigParser(provideMoshi());
   private final InMemoryProjectContextFactory contextFactory =
-      new InMemoryProjectContextFactory(null, ui, repositories);
+      new InMemoryProjectContextFactory(null, ui, repositories, parser);
 
   /**
    *  When two or more revisions are given, the metadata fields are concatenated.
@@ -64,7 +69,7 @@ public class DetermineMetadataDirectiveTest extends TestCase {
             .date(new DateTime(1L))
             .description("description\n\n-------------\ndescription")
             .withParents(
-                Revision.create("parent", "internal"), Revision.create("parent", "internal"))
+                new Revision("parent", "internal"), new Revision("parent", "internal"))
             .build();
 
     assertThat(stream.toString().trim()).isEqualTo(expected.toString().trim());
@@ -90,7 +95,7 @@ public class DetermineMetadataDirectiveTest extends TestCase {
             .author("author")
             .date(new DateTime(1L))
             .description("description")
-            .withParents(Revision.create("parent", "internal"))
+            .withParents(new Revision("parent", "internal"))
             .build();
 
     assertThat(stream.toString().trim()).isEqualTo(rm.toString().trim());

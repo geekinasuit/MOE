@@ -17,12 +17,12 @@ package com.google.devtools.moe.client.github;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.devtools.moe.client.MoeTypeAdapterFactory;
 import com.google.common.io.Resources;
+import com.google.devtools.moe.client.moshi.MoshiModule;
 import com.google.devtools.moe.client.github.GithubAPI.IssueState;
 import com.google.devtools.moe.client.github.GithubAPI.PullRequest;
 import com.google.devtools.moe.client.github.GithubClient.OkHttpClientWrapper;
-import com.google.gson.GsonBuilder;
+import com.squareup.okhttp.OkHttpClient;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import junit.framework.TestCase;
@@ -44,31 +44,28 @@ public class GithubClientTest extends TestCase {
 
   public void testGithubParsing() {
     OkHttpClientWrapper wrapper =
-        new OkHttpClientWrapper(null) {
+        new OkHttpClientWrapper(new OkHttpClient()) {
           @Override
-          String getResponseJson(PullRequestUrl id) {
+          public String getResponseJson(PullRequestUrl id) {
             return pullRequestJson;
           }
         };
-    GithubClient clientToTest =
-        new GithubClient(
-            new GsonBuilder().registerTypeAdapterFactory(MoeTypeAdapterFactory.create()).create(),
-            wrapper);
+    GithubClient clientToTest = new GithubClient(MoshiModule.provideMoshi(), wrapper);
 
     PullRequest pullRequest = clientToTest.getPullRequest(PULL_REQUEST_URL);
 
     assertThat(pullRequest).isNotNull();
-    assertThat(pullRequest.state()).isEqualTo(IssueState.OPEN);
-    assertThat(pullRequest.head().sha()).isEqualTo("44691051251777694c47d769e5a7088aafe54ea4");
-    assertThat(pullRequest.base().sha()).isEqualTo("7100bd630230e8c3702ee0a6c1976bba48f97964");
+    assertThat(pullRequest.getState()).isEqualTo(IssueState.open);
+    assertThat(pullRequest.getHead().getSha()).isEqualTo("44691051251777694c47d769e5a7088aafe54ea4");
+    assertThat(pullRequest.getBase().getSha()).isEqualTo("7100bd630230e8c3702ee0a6c1976bba48f97964");
   }
 
   public void testCreatePullRequestId() {
     PullRequestUrl id = PullRequestUrl.create("http://github.com/foo/bar/pull/5");
-    assertThat(id.owner()).isEqualTo("foo");
-    assertThat(id.project()).isEqualTo("bar");
-    assertThat(id.number()).isEqualTo(5);
-    assertThat(id.apiAddress()).isEqualTo("https://api.github.com/repos/foo/bar/pulls/5");
+    assertThat(id.getOwner()).isEqualTo("foo");
+    assertThat(id.getProject()).isEqualTo("bar");
+    assertThat(id.getNumber()).isEqualTo(5);
+    assertThat(id.getApiAddress()).isEqualTo("https://api.github.com/repos/foo/bar/pulls/5");
   }
 
   public void testCreatePullRequestId_NonUrl() {
