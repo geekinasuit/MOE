@@ -1,2 +1,9 @@
 build --strategy=KotlinCompile=worker
 
+build:ci --build_metadata=ROLE=CI
+build:ci --bes_results_url=https://app.buildbuddy.io/invocation/
+build:ci --bes_backend=grpcs://remote.buildbuddy.io
+build:ci --remote_executor=grpcs://cloud.buildbuddy.io
+
+try-import %workspace%/ci.bazelrc
+try-import %workspace%/user.bazelrc

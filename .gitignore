@@ -16,6 +16,7 @@ target/
 bazel-*
 .aswb/
 .ijwb/
+user.bazelrc
 
 # Ignore certs
 *.pem
