@@ -22,7 +22,8 @@ data class RepositoryConfig(
   @Json(name = "preserve_authors")
   val preserveAuthors: Boolean = false,
 
-  val paths: List<String> = listOf(),
+  /** If supported by the repository type, limit the fetching depth to the given number. */
+  val depth: Int? = null,
 
   /**
    * A list of regular expression patterns whose matching files will be ignored when
@@ -49,20 +50,25 @@ data class RepositoryConfig(
   /** If present, constrain this repository to the specified branch */
   val branch: String? = null,
 
+  /** If present, constrain this repository to the specified tag */
+  val tag: String? = null,
+
   /** A list of subdirectories to checkout, otherwise the whole repository will be checked out. */
-  @Json(name = "checkout_paths")
-  val checkoutPaths: List<String> = ImmutableList.of(),
+  val paths: List<String> = listOf(),
 
   /** Is the repository configured to check out only at the revision point of interest. */
   @Json(name = "shallow_checkout")
   val shallowCheckout: Boolean = false
-
 ) : ValidatingConfig {
 
   /** Validates the repository configuration. */
   @Throws(InvalidProject::class)
   override fun validate() {
     InvalidProject.assertFalse(type.isBlank(), "Must set repository type.")
+    InvalidProject.assertTrue(
+      branch == null || tag == null,
+      "Cannot set both branch and tag constraints"
+    )
   }
 
   // Temporary copy operators and factory functions, to ease java access.

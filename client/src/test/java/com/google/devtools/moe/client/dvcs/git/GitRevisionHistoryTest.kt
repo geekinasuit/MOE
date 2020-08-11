@@ -72,7 +72,7 @@ class GitRevisionHistoryTest : TestCase() {
   ): IExpectationSetters<String> {
     return EasyMock.expect(
       mockRepo.runGitCommand(
-        "log", "--max-count=1", "--format=$logFormat", "--ignore-missing", revName
+        "log", "--max-count=1", "--format=$logFormat", "--ignore-missing", revName, "--"
       )
     )
   }
@@ -151,6 +151,7 @@ class GitRevisionHistoryTest : TestCase() {
     val rh = GitRevisionHistory(Suppliers.ofInstance(mockClonedRepo(repositoryName)))
     control.replay()
     val rm = rh.parseMetadata(
+      repositoryName,
       METADATA_JOINER.join(
         "1",
         "foo@google.com",
@@ -158,7 +159,7 @@ class GitRevisionHistoryTest : TestCase() {
         "2 3",
         "desc with \n\nmultiple lines\n"
       )
-    )
+    )!!
     control.verify()
     assertEquals("1", rm.id())
     assertEquals("foo@google.com", rm.author())
@@ -183,8 +184,7 @@ class GitRevisionHistoryTest : TestCase() {
   }
 
   @Throws(Exception::class) fun testFindNewRevisions_all() {
-    val mockRepo =
-      mockClonedRepo(repositoryName)
+    val mockRepo = mockClonedRepo(repositoryName)
     mockFindHeadRevisions(mockRepo)
     val db = DummyDb(false, null)
 

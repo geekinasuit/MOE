@@ -16,6 +16,7 @@
 
 package com.google.devtools.moe.client.options;
 
+import java.io.File;
 import org.kohsuke.args4j.Option;
 
 /**
@@ -35,6 +36,12 @@ public class MoeOptions extends DebugOptions {
   public String configFile() {
     return configFilename;
   }
+
+  @Option(
+      name = "--working_dir",
+      usage = "Directory in which to write moe temporary files/directories"
+  )
+  protected File workingDir = null;
 
   @Option(
     name = "--help",

@@ -44,10 +44,10 @@ class GitClonedRepositoryTest : TestCase() {
     url = repositoryURL,
     branch = if (testBranch == "master") null else testBranch,
     shallowCheckout = testIsShallow,
-    checkoutPaths = testSparse
+    paths = testSparse
   )
 
-  @Throws(Exception::class) private fun expectCloneLocally() {
+  @Throws(Exception::class) private fun expectCloneLocally(tags: Boolean = false) {
     // The Lifetimes of clones in these tests are arbitrary since we're not really creating any
     // temp dirs and we're not testing clean-up.
     val testBranchText = if (testBranch == "master") "" else "_$testBranch"
@@ -68,13 +68,13 @@ class GitClonedRepositoryTest : TestCase() {
       )
     )
       .andReturn("git add remote ok (mock output)")
-    EasyMock.expect(cmd.runCommand(localCloneTempDir, "git", listOf("fetch", "--tags")))
-      .andReturn("git fetch --tags (mock output)")
+    EasyMock.expect(
+      cmd.runCommand(localCloneTempDir, "git", listOf("fetch", "origin", testBranch))
+    ).andReturn("git fetch --tags (mock output)")
     if (testSparse.isNotEmpty()) {
       EasyMock.expect(
         cmd.runCommand(localCloneTempDir, "git", listOf("config", "core.sparseCheckout", "true"))
-      )
-        .andReturn("git config ok (mock output)")
+      ).andReturn("git config ok (mock output)")
       mockFS.write(
           testSparse.joinToString("\n", postfix = "\n"),
         File("$localCloneTempDir/.git/info/sparse-checkout")
@@ -175,7 +175,12 @@ class GitClonedRepositoryTest : TestCase() {
       .andReturn(headRevId)
 
     // Unshallow the repository first.
-    EasyMock.expect(cmd.runCommand(localCloneTempDir, "git", listOf("fetch", "--unshallow")))
+    EasyMock.expect(
+      cmd.runCommand(
+        localCloneTempDir,
+        "git",
+        listOf("fetch", "--unshallow", "origin", testBranch))
+    )
       .andReturn("git fetch unshallow ok (mock output)")
 
     // Updating to revision other than head, so create a branch.

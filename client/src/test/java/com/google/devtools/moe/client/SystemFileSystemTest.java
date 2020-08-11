@@ -24,9 +24,13 @@ import static java.util.Arrays.asList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.google.devtools.moe.client.Ui.Task;
+import com.google.devtools.moe.client.qualifiers.Argument;
 import com.google.devtools.moe.client.testing.TestingModule;
+import dagger.Module;
+import dagger.Provides;
 import java.io.File;
 import java.io.IOException;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import org.junit.Before;
@@ -356,12 +360,18 @@ public class SystemFileSystemTest {
   // TODO(cgruber): Rework these when statics aren't inherent in the design.
   @dagger.Component(
       modules = {
-        TestingModule.class,
         SystemCommandRunner.Module.class,
-        SystemFileSystem.Module.class
+        SystemFileSystem.Module.class,
+        TestingModule.class,
+        TmpDirModule.class,
       })
   @Singleton
   interface Component {
     void inject(SystemFileSystemTest instance);
+  }
+
+  @Module
+  interface TmpDirModule {
+    @Provides @Nullable @Argument("working_dir") static File workingDir() { return null; }
   }
 }

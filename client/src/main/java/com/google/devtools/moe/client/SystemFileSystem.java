@@ -25,6 +25,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
+import com.google.devtools.moe.client.qualifiers.Argument;
 import com.google.devtools.moe.client.qualifiers.Flag;
 import dagger.Binds;
 import dagger.Lazy;
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -49,6 +51,7 @@ import javax.inject.Singleton;
 public class SystemFileSystem extends AbstractFileSystem {
   private final Map<File, Lifetime> tempDirLifetimes = Maps.newHashMap();
   @Inject Lazy<Lifetimes> lifetimes;
+  @Inject @Nullable @Argument("working_dir") File workingDir;
 
   @Inject
   @Flag("debug")
@@ -66,7 +69,10 @@ public class SystemFileSystem extends AbstractFileSystem {
   public File getTemporaryDirectory(String prefix, Lifetime lifetime) {
     File tempDir;
     try {
-      tempDir = File.createTempFile("moe_" + prefix, "");
+      if (workingDir != null) {
+        workingDir.mkdirs();
+      }
+      tempDir = File.createTempFile("moe_" + prefix, "", workingDir);
       tempDir.delete();
     } catch (IOException e) {
       throw new MoeProblem(e, "could not create temp file");

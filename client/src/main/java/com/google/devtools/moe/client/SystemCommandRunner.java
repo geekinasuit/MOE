@@ -48,7 +48,7 @@ public class SystemCommandRunner implements CommandRunner {
     ImmutableList<String> cmdArgs =
         new ImmutableList.Builder<String>().add(command).addAll(args).build();
 
-    logger.fine(workingDirectory + " $ " + Joiner.on(" ").join(cmdArgs));
+    logger.info(workingDirectory + " $ " + Joiner.on(" ").join(cmdArgs));
 
     ProcessBuilder pb = new ProcessBuilder(cmdArgs);
     if (!Strings.isNullOrEmpty(workingDirectory)) {

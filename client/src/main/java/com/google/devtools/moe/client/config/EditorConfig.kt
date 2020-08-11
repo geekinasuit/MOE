@@ -36,6 +36,11 @@ data class EditorConfig(
   val useRegex: Boolean = false
 
 ) : ValidatingConfig {
+
+  val regexMappings: Map<Regex, String> by lazy {
+    mappings.map { (p, r) -> p.toRegex() to r }.toMap()
+  }
+
   @Throws(InvalidProject::class)
   override fun validate() {
     InvalidProject.assertNotNull(type, "Missing type in editor")
