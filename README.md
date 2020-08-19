@@ -29,13 +29,21 @@ is burdensome. MOE allows users to:
 
 ## Project Status
 
-MOE was created around 2011, but has not had a lot of love. Google teams that
-maintain open-source releases (guava, dagger, auto, etc.) use it regularly,
-so we dusted it off to share fixes, improvements, and help folks who use it
-outside of Google.
+MOE was created around 2011, by a Dan Bentley at Google. Google teams that
+maintain open-source releases (guava, dagger, auto, etc.) used it regularly,
+and dusted it off to share fixes, improvements, and help folks who used it
+outside of Google. Many Google projects shifted to [Copybara], leaving MOE
+lingering, though it satisfied some projects' use-cases which were not
+handled by Copybara. 
 
-The project is currently undergoing a fair bit of re-factoring and needs a
-documentation update, which is forthcoming.
+Given that I, Christian Gruber, a later maintainer, continue to use it
+outside of Google, I've forked the project so I can evolve it to suit
+my needs, without putting a burden on Googlers to sync changes internally.
+
+The project is currently undergoing a fair bit of re-factoring and needs
+better documentation, which i'm working on.
+
+[Copybara]: http://github.com/google/copybara
 
 ## Usage
 
