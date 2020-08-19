@@ -16,3 +16,6 @@ target/
 bazel-*
 .aswb/
 .ijwb/
+
+# Ignore certs
+*.pem
