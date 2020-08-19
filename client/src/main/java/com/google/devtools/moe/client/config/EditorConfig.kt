@@ -16,6 +16,9 @@
 package com.google.devtools.moe.client.config
 
 import com.google.devtools.moe.client.InvalidProject
+import com.google.devtools.moe.client.config.EditorType.renamer
+import com.google.devtools.moe.client.config.EditorType.scrubber
+import com.google.devtools.moe.client.config.EditorType.shell
 import com.squareup.moshi.Json
 
 /**
@@ -25,10 +28,10 @@ data class EditorConfig(
   val type: EditorType,
 
   @Json(name = "scrubber_config")
-  val scrubberConfig: ScrubberConfig?,
+  val scrubberConfig: ScrubberConfig? = null,
 
   @Json(name = "command_string")
-  val commandString: String?,
+  val commandString: String? = null,
 
   val mappings: Map<String, String> = mapOf(),
 
@@ -44,5 +47,19 @@ data class EditorConfig(
   @Throws(InvalidProject::class)
   override fun validate() {
     InvalidProject.assertNotNull(type, "Missing type in editor")
+    when (type) {
+      scrubber -> InvalidProject.assertNotNull(
+        scrubberConfig,
+        "Failed to specify a \"scrubber_config\" in scrubbing editor."
+      )
+      shell -> InvalidProject.assertNotNull(
+        commandString,
+        "Failed to specify a \"command_string\" in shell editor."
+      )
+      renamer -> InvalidProject.assertNotNull(
+        mappings,
+        "Failed to specify \"mappings\" in renamer editor."
+      )
+    }
   }
 }

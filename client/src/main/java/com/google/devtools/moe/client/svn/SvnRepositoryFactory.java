@@ -56,7 +56,7 @@ public class SvnRepositoryFactory implements RepositoryType.Factory {
       throw new InvalidProject("Svn repository config missing \"url\".");
     }
 
-    SvnRevisionHistory rh = new SvnRevisionHistory(name, url, util);
+    SvnRevisionHistory rh = new SvnRevisionHistory(name, url, util, config);
     return RepositoryType.create(
         name,
         rh,

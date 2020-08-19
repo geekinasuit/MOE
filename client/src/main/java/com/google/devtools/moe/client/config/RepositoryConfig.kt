@@ -53,7 +53,12 @@ data class RepositoryConfig(
   /** If present, constrain this repository to the specified tag */
   val tag: String? = null,
 
-  /** A list of subdirectories to checkout, otherwise the whole repository will be checked out. */
+  /**
+   * A list of subdirectories to checkout, otherwise the whole repository will be checked out.
+   *
+   * These will also be used to filter commits, if present, those commits only affecting files
+   * outside of these subdirectories being ignored.
+   */
   val paths: List<String> = listOf(),
 
   /** Is the repository configured to check out only at the revision point of interest. */

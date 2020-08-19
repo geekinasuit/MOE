@@ -56,8 +56,8 @@ class ScrubberConfig(
    * Called by ProjectContextFactory to update usernamesConfig with external usernames file.
    */
   fun updateUsernames(usernamesConfig: UsernamesConfig) {
-    usernamesToScrub.addAll(usernamesConfig.scrubbableUsernames ?: listOf())
-    usernamesToPublish.addAll(usernamesConfig.publishableUsernames ?: listOf())
+    usernamesToScrub.addAll(usernamesConfig.scrubbableUsernames)
+    usernamesToPublish.addAll(usernamesConfig.publishableUsernames)
     // reset usernamesFile to null so that we don't read the file again
     usernamesFile = null
   }

@@ -169,7 +169,8 @@ public class Migrator {
    * Returns a result containing the known/discovered equivalences.
    */
   public Result matchEquivalences(RevisionHistory history, String toRepository) {
-    // TODO(cgruber): Migrate this to a graph walk.
+    // TODO(cgruber): Migrate this to a breadth-first (to avoid premature dive to roots) graph walk.
+    // Note: GitRevisionHistory will just ignore the search type, as it implements its own logic.
     Result equivMatch =
         history.findRevisions(
             null, // Start at head.

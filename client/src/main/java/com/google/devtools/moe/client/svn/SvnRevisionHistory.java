@@ -16,9 +16,11 @@
 
 package com.google.devtools.moe.client.svn;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.devtools.moe.client.CommandRunner.CommandException;
 import com.google.devtools.moe.client.MoeProblem;
+import com.google.devtools.moe.client.config.RepositoryConfig;
 import com.google.devtools.moe.client.repositories.AbstractRevisionHistory;
 import com.google.devtools.moe.client.repositories.Revision;
 import com.google.devtools.moe.client.repositories.RevisionMetadata;
@@ -41,11 +43,17 @@ public class SvnRevisionHistory extends AbstractRevisionHistory {
   private final String name;
   private final String url;
   private final SvnUtil util;
+  private final RepositoryConfig config;
 
-  public SvnRevisionHistory(String name, String url, SvnUtil util) {
+  public SvnRevisionHistory(String name, String url, SvnUtil util, RepositoryConfig config) {
     this.name = name;
     this.url = url;
     this.util = util;
+    this.config = config;
+  }
+
+  @Override protected RepositoryConfig getConfig() {
+    return config;
   }
 
   @Override
