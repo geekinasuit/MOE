@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.devtools.moe.client.CommandRunner;
 import com.google.devtools.moe.client.CommandRunner.CommandException;
 import com.google.devtools.moe.client.MoeProblem;
+import com.google.devtools.moe.client.config.RepositoryConfig;
 import com.google.devtools.moe.client.repositories.AbstractRevisionHistory;
 import com.google.devtools.moe.client.repositories.Revision;
 import com.google.devtools.moe.client.repositories.RevisionMetadata;
@@ -52,6 +53,10 @@ public class HgRevisionHistory extends AbstractRevisionHistory {
     this.runner = runner;
     this.hgBinary = hgBinary;
     this.tipCloneSupplier = tipCloneSupplier;
+  }
+
+  @Override protected RepositoryConfig getConfig() {
+    return tipCloneSupplier.get().getConfig();
   }
 
   /**

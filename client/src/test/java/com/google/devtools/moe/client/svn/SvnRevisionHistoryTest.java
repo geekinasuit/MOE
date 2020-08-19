@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.expect;
 import com.google.common.collect.ImmutableList;
 import com.google.devtools.moe.client.CommandRunner;
 import com.google.devtools.moe.client.CommandRunner.CommandException;
+import com.google.devtools.moe.client.config.RepositoryConfig;
 import com.google.devtools.moe.client.database.DbStorage;
 import com.google.devtools.moe.client.database.FileDb;
 import com.google.devtools.moe.client.database.RepositoryEquivalence;
@@ -52,6 +53,7 @@ public class SvnRevisionHistoryTest extends TestCase {
   private final IMocksControl control = EasyMock.createControl();
   private final CommandRunner cmd = control.createMock(CommandRunner.class);
   private final SvnUtil util = new SvnUtil(cmd);
+  private final RepositoryConfig config = RepositoryConfig.fakeRepositoryConfig();
 
   public void testParseRevisions() {
     List<Revision> rs =
@@ -95,7 +97,7 @@ public class SvnRevisionHistoryTest extends TestCase {
     }
     control.replay();
     SvnRevisionHistory history =
-        new SvnRevisionHistory("internal_svn", "http://foo/svn/trunk/", util);
+        new SvnRevisionHistory("internal_svn", "http://foo/svn/trunk/", util, config);
     Revision result = history.findHighestRevision("");
     assertEquals("3", result.revId());
 
@@ -106,7 +108,7 @@ public class SvnRevisionHistoryTest extends TestCase {
 
   public void testParseMetadata() {
     SvnRevisionHistory history =
-        new SvnRevisionHistory("internal_svn", "http://foo/svn/trunk/", null);
+        new SvnRevisionHistory("internal_svn", "http://foo/svn/trunk/", null, config);
     List<RevisionMetadata> rs =
         history.parseMetadata(
             "<log><logentry revision=\"2\"><author>uid@google.com</author>"
@@ -163,7 +165,7 @@ public class SvnRevisionHistoryTest extends TestCase {
     }
     control.replay();
     SvnRevisionHistory history =
-        new SvnRevisionHistory("internal_svn", "http://foo/svn/trunk/", util);
+        new SvnRevisionHistory("internal_svn", "http://foo/svn/trunk/", util, config);
     RevisionMetadata result = history.getMetadata(new Revision(3, "internal_svn"));
     assertEquals("3", result.id());
     assertEquals("uid@google.com", result.author());
@@ -207,7 +209,7 @@ public class SvnRevisionHistoryTest extends TestCase {
     logEntry.appendChild(msg);
 
     SvnRevisionHistory history =
-        new SvnRevisionHistory("internal_svn", "http://foo/svn/trunk/", null);
+        new SvnRevisionHistory("internal_svn", "http://foo/svn/trunk/", null, config);
     RevisionMetadata result =
         history.parseMetadataNodeList(
             "7",
@@ -315,7 +317,7 @@ public class SvnRevisionHistoryTest extends TestCase {
 
     control.replay();
     SvnRevisionHistory history =
-        new SvnRevisionHistory("internal_svn", "http://foo/svn/trunk/", util);
+        new SvnRevisionHistory("internal_svn", "http://foo/svn/trunk/", util, config);
     List<Revision> newRevisions =
         history
             .findRevisions(null, new RepositoryEquivalenceMatcher("public", db), SearchType.LINEAR)
@@ -424,7 +426,8 @@ public class SvnRevisionHistoryTest extends TestCase {
 
     FileDb database =
         new FileDb(null, provideMoshi().adapter(DbStorage.class).fromJson(testDb1), null);
-    SvnRevisionHistory history = new SvnRevisionHistory("repo2", "http://foo/svn/trunk/", util);
+    SvnRevisionHistory history =
+        new SvnRevisionHistory("repo2", "http://foo/svn/trunk/", util, config);
 
     Result result =
         history.findRevisions(
@@ -531,7 +534,8 @@ public class SvnRevisionHistoryTest extends TestCase {
 
     FileDb database =
         new FileDb(null, provideMoshi().adapter(DbStorage.class).fromJson(testDb2), null);
-    SvnRevisionHistory history = new SvnRevisionHistory("repo2", "http://foo/svn/trunk/", util);
+    SvnRevisionHistory history =
+        new SvnRevisionHistory("repo2", "http://foo/svn/trunk/", util, config);
 
     Result result =
         history.findRevisions(

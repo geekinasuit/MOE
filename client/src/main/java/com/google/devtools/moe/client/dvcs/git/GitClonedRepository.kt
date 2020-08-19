@@ -148,7 +148,6 @@ open class GitClonedRepository(
     )
     try {
       filesystem.makeDirs(archiveLocation)
-      if (config.paths.isEmpty()) {
         // Using this just to get a filename.
         val tarballPath = filesystem.getTemporaryDirectory(
           "git_tarball_${repositoryName}_$revId.tar.", lifetimes.currentTask()
@@ -158,30 +157,13 @@ open class GitClonedRepository(
         // archiving to a tar.  The fastest way to do this would be to pipe the
         // output directly into tar, however, there's no option for that using
         // the classes we have. (michaelpb)
-        runGitCommand("archive", "--format=tar", "--output=$tarballPath", revId!!)
+        val args = listOf("archive", "--format=tar", "--output=$tarballPath", revId) + config.paths
+        runGitCommand(*args.toTypedArray())
 
         // Untar the tarball we just made
         cmd.runCommand(
           "", "tar", listOf("xf", tarballPath, "-C", archiveLocation.absolutePath)
         )
-      } else {
-        initLocal(archiveLocation)
-        val pullArgs = listOf("pull") +
-          (config.tag?.let { listOf("--tags") } ?: listOf()) +
-          when {
-            config.shallowCheckout -> listOf("--depth=1")
-            config.depth != null -> listOf("--depth=${config.depth}")
-            else -> listOf()
-          } +
-          "origin" +
-          (config.branch ?: config.tag ?: DEFAULT_BRANCH)
-        cmd.runCommand(archiveLocation.absolutePath, "git", pullArgs)
-        cmd.runCommand(archiveLocation.absolutePath, "git", listOf("checkout", revId))
-        // Remove git tracking.
-        filesystem.deleteRecursively(
-          Paths.get(archiveLocation.absolutePath, ".git").toFile()
-        )
-      }
     } catch (e: CommandException) {
       throw MoeProblem(e, "Could not archive git clone at ${localTempDir.absolutePath}")
     } catch (e: IOException) {

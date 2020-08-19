@@ -19,10 +19,12 @@ package com.google.devtools.moe.client.repositories;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.devtools.moe.client.MoeProblem;
+import com.google.devtools.moe.client.config.RepositoryConfig;
 import com.google.devtools.moe.client.repositories.RevisionMetadata.FieldParsingResult;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -30,10 +32,10 @@ import java.util.Set;
  */
 public abstract class AbstractRevisionHistory implements RevisionHistory {
 
-  private static final int MAX_REVISIONS_TO_SEARCH = 10000;
+  protected abstract RepositoryConfig getConfig();
 
   @Override
-  public final RevisionMetadata getMetadata(Revision revision) {
+  public RevisionMetadata getMetadata(Revision revision) {
     RevisionMetadata unparsedMetadata = createMetadata(revision);
     if (unparsedMetadata == null) {
       return null;
@@ -80,6 +82,14 @@ public abstract class AbstractRevisionHistory implements RevisionHistory {
       Revision current = workList.removeFirst();
       if (!matcher.matches(current)) {
         RevisionMetadata metadata = getMetadata(current);
+        if (metadata == null) continue; // Empty metadata may be valid, skip.
+        List<String> paths = getConfig().getPaths();
+        if (!paths.isEmpty() && metadata.files() != null) {
+          boolean matches = metadata.files().stream().anyMatch((file) ->
+            paths.stream().anyMatch((path) -> file.startsWith(path))
+          );
+          if (!matches) continue; // Couldn't find any affected files which matched the paths.
+        }
         nonMatchingBuilder.addRevision(current, metadata);
 
         List<Revision> parentsToSearch = metadata.parents();
@@ -93,12 +103,12 @@ public abstract class AbstractRevisionHistory implements RevisionHistory {
           }
         }
 
-        if (visited.size() > MAX_REVISIONS_TO_SEARCH) {
+        if (visited.size() > RevisionHistory.MAX_REVISIONS_TO_SEARCH) {
           throw new MoeProblem(
               "Couldn't find a matching revision for matcher (%s) from %s within %d revisions.",
               matcher,
               (revision == null) ? "head" : revision,
-              MAX_REVISIONS_TO_SEARCH);
+              RevisionHistory.MAX_REVISIONS_TO_SEARCH);
         }
       } else {
         // Don't search past matching revisions.

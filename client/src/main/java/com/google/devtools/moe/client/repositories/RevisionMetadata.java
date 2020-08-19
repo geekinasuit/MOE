@@ -55,6 +55,9 @@ public abstract class RevisionMetadata {
 
   public abstract ImmutableSetMultimap<String, String> fields();
 
+  @Nullable
+  public abstract ImmutableList<String> files();
+
   /** Make a builder from this value object */
   public abstract Builder toBuilder();
 
@@ -75,7 +78,8 @@ public abstract class RevisionMetadata {
           && Objects.equals(author(), revisionMetadataObj.author())
           && date().isEqual(revisionMetadataObj.date())
           && Objects.equals(description(), revisionMetadataObj.description())
-          && Objects.equals(parents(), revisionMetadataObj.parents()));
+          && Objects.equals(parents(), revisionMetadataObj.parents())
+          && Objects.equals(files(), revisionMetadataObj.files()));
     }
     return false;
   }
@@ -95,9 +99,9 @@ public abstract class RevisionMetadata {
 
     public abstract Builder description(String description);
 
-    abstract String description();
+    public abstract Builder parents(ImmutableList<Revision> parents);
 
-    public abstract ImmutableList.Builder<Revision> parentsBuilder();
+    public abstract Builder files(@Nullable List<String> files);
 
     /**
      * Intended only for MetadataScrubber all-fields substitution in a builder-copy. Generally one
@@ -108,7 +112,7 @@ public abstract class RevisionMetadata {
     public abstract ImmutableSetMultimap.Builder<String, String> fieldsBuilder();
 
     public Builder withParents(Iterable<Revision> parentRevisions) {
-      parentsBuilder().addAll(parentRevisions);
+      parents(ImmutableList.copyOf(parentRevisions));
       return this;
     }
 
@@ -120,7 +124,7 @@ public abstract class RevisionMetadata {
   }
 
   public static RevisionMetadata.Builder builder() {
-    return new AutoValue_RevisionMetadata.Builder();
+    return new AutoValue_RevisionMetadata.Builder().parents(ImmutableList.of());
   }
 
   /**
@@ -132,8 +136,11 @@ public abstract class RevisionMetadata {
     RevisionMetadata.Builder builder = RevisionMetadata.builder();
     ImmutableList.Builder<String> idBuilder = ImmutableList.builder();
     ImmutableList.Builder<String> authorBuilder = ImmutableList.builder();
+    ImmutableList.Builder<Revision> parentsBuilder = ImmutableList.builder();
     DateTime newDate = new DateTime(0L);
     ImmutableList.Builder<String> descBuilder = ImmutableList.builder();
+    List<String> files = null;
+
 
     for (RevisionMetadata rm : rms) {
       idBuilder.add(rm.id());
@@ -142,8 +149,13 @@ public abstract class RevisionMetadata {
         newDate = rm.date();
       }
       descBuilder.add(rm.description());
-      builder.parentsBuilder().addAll(rm.parents());
+      parentsBuilder.addAll(rm.parents());
       builder.fieldsBuilder().putAll(rm.fields());
+      if (files == null) {
+        files = rm.files();
+      } else if (rm.files() != null) {
+        files.addAll(rm.files());
+      }
     }
 
     if (migrationFromRev != null) {
@@ -153,9 +165,12 @@ public abstract class RevisionMetadata {
               + migrationFromRev.getRevId());
     }
 
+
+
     return builder
         .id(Joiner.on(", ").join(idBuilder.build()))
         .author(Joiner.on(", ").join(authorBuilder.build()))
+        .withParents(parentsBuilder.build())
         .date(newDate)
         .description(Joiner.on("\n\n-------------\n").join(descBuilder.build()))
         .build();

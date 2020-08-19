@@ -17,7 +17,7 @@ class MoshiUsernameConfigParser @Inject constructor(
     InvalidProject.assertNotNull(json, "No MOE project config was specified.")
     return try {
       val config = moshi.adapter(UsernamesConfig::class.java).failOnUnknown().fromJson(json!!)
-      InvalidProject.assertNotNull(config, "Could not parse MOE config")
+      InvalidProject.assertNotNull(config, "Could not parse MOE config - no output from parser.")
       return config!!
     } catch (e: IOException) {
       throw InvalidProject(e, "Could not parse MOE config: " + e.message)

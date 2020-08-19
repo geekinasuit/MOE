@@ -31,6 +31,7 @@ import com.google.devtools.moe.client.moshi.MoshiModule.Companion.provideMoshi
 import com.google.devtools.moe.client.repositories.Revision
 import com.google.devtools.moe.client.repositories.RevisionHistory.SearchType.BRANCHED
 import com.google.devtools.moe.client.repositories.RevisionHistory.SearchType.LINEAR
+import com.google.devtools.moe.client.repositories.RevisionMetadata
 import com.google.devtools.moe.client.testing.DummyDb
 import junit.framework.TestCase
 import org.easymock.EasyMock
@@ -47,8 +48,8 @@ class GitRevisionHistoryTest : TestCase() {
     private val DATE = // 2012/7/9, 6am
       DateTime(2012, 7, 9, 6, 0, DateTimeZone.forOffsetHours(-7))
     private const val LOG_FORMAT_COMMIT_ID = "%H"
-    private val METADATA_JOINER = Joiner.on(GitRevisionHistory.LOG_DELIMITER)
-    private val LOG_FORMAT_ALL_METADATA = METADATA_JOINER.join("%H", "%an", "%ai", "%P", "%B")
+    private val METADATA_JOINER = Joiner.on(LOG_SEP)
+    private val LOG_FORMAT_ALL_METADATA = METADATA_JOINER.join("%H", "%an <%ae>", "%ai", "%P", "%B", "")
   }
 
   private val control = EasyMock.createControl()
@@ -68,11 +69,12 @@ class GitRevisionHistoryTest : TestCase() {
   private fun expectLogCommandIgnoringMissing(
     mockRepo: GitClonedRepository,
     logFormat: String,
-    revName: String
+    revName: String,
+    count: Int = 10000
   ): IExpectationSetters<String> {
     return EasyMock.expect(
       mockRepo.runGitCommand(
-        "log", "--max-count=1", "--format=$logFormat", "--ignore-missing", revName, "--"
+        "log", "--max-count=$count", "--format=$logFormat", "--ignore-missing", "--name-only", revName, "--"
       )
     )
   }
@@ -129,13 +131,15 @@ class GitRevisionHistoryTest : TestCase() {
 
   @Throws(Exception::class) fun testGetMetadata() {
     val mockRepo = mockClonedRepo(repositoryName)
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "1")
+    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "1", 1)
       .andReturn(
-        METADATA_JOINER.join("1", "foo@google.com", GIT_COMMIT_DATE, "2 3", "description\n")
+        "1---@MOE@---foo@google.com---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@---2 3---@MOE@---description\n---@MOE@---"
       )
     control.replay()
     val rh = GitRevisionHistory(Suppliers.ofInstance(mockRepo))
     val result = rh.getMetadata(Revision(1, "mockrepo"))
+    requireNotNull(result)
     assertEquals("1", result.id())
     assertEquals("foo@google.com", result.author())
     assertThat(result.date()).isEquivalentAccordingToCompareTo(DATE)
@@ -152,13 +156,10 @@ class GitRevisionHistoryTest : TestCase() {
     control.replay()
     val rm = rh.parseMetadata(
       repositoryName,
-      METADATA_JOINER.join(
-        "1",
-        "foo@google.com",
-        GIT_COMMIT_DATE,
-        "2 3",
-        "desc with \n\nmultiple lines\n"
-      )
+      "1---@MOE@---foo@google.com---@MOE@---" +
+        "$GIT_COMMIT_DATE---@MOE@---2 3---@MOE@---desc with \n" +
+        "\n" +
+        "multiple lines\n---@MOE@---"
     )!!
     control.verify()
     assertEquals("1", rm.id())
@@ -189,26 +190,14 @@ class GitRevisionHistoryTest : TestCase() {
     val db = DummyDb(false, null)
 
     // Breadth-first search order.
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "head")
+    expectLogCommandIgnoringMissing(mockRepo, LOG_ENTRY_SEP + LOG_FORMAT_ALL_METADATA, "head")
       .andReturn(
-        METADATA_JOINER.join(
-          "head", "uid@google.com", GIT_COMMIT_DATE,
-          "parent1 parent2", "description"
-        )
-      )
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "parent1")
-      .andReturn(
-        METADATA_JOINER.join(
-          "parent1", "uid@google.com", GIT_COMMIT_DATE, "",
-          "description"
-        )
-      )
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "parent2")
-      .andReturn(
-        METADATA_JOINER.join(
-          "parent2", "uid@google.com", GIT_COMMIT_DATE, "",
-          "description"
-        )
+        "---@MOE_LOG_ENTRY@---head---@MOE@---UID <uid@google.com>---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@---parent1 parent2---@MOE@---description---@MOE@---" +
+          "---@MOE_LOG_ENTRY@---parent1---@MOE@---UID <uid@google.com>---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@------@MOE@---description---@MOE@---" +
+          "---@MOE_LOG_ENTRY@---parent2---@MOE@---UID <uid@google.com>---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@------@MOE@---description---@MOE@---"
       )
     control.replay()
     val rh = GitRevisionHistory(Suppliers.ofInstance(mockRepo))
@@ -250,20 +239,13 @@ class GitRevisionHistoryTest : TestCase() {
       }
 
     // Breadth-first search order.
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "head")
+    expectLogCommandIgnoringMissing(mockRepo, LOG_ENTRY_SEP + LOG_FORMAT_ALL_METADATA, "head")
       .andReturn(
-        METADATA_JOINER.join(
-          "head", "uid@google.com", GIT_COMMIT_DATE,
-          "parent1 parent2", "description"
+        "---@MOE_LOG_ENTRY@---head---@MOE@---UID <uid@google.com>---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@---parent1 parent2---@MOE@---description---@MOE@---" +
+          "---@MOE_LOG_ENTRY@---parent2---@MOE@---UID <uid@google.com>---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@------@MOE@---description---@MOE@---"
         )
-      )
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "parent2")
-      .andReturn(
-        METADATA_JOINER.join(
-          "parent2", "uid@google.com", GIT_COMMIT_DATE, "",
-          "description"
-        )
-      )
     control.replay()
     val rh = GitRevisionHistory(Suppliers.ofInstance(mockRepo))
     val newRevisions =
@@ -318,23 +300,16 @@ class GitRevisionHistoryTest : TestCase() {
    */
   @Throws(Exception::class) fun testFindLastEquivalence() {
     val mockRepo = mockClonedRepo("repo2")
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "4")
+    expectLogCommandIgnoringMissing(mockRepo, LOG_ENTRY_SEP + LOG_FORMAT_ALL_METADATA, "4")
       .andReturn(
-        METADATA_JOINER.join(
-          "4", "author", GIT_COMMIT_DATE, "3a 3b", "description"
-        )
-      )
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "3a")
-      .andReturn(
-        METADATA_JOINER.join(
-          "3a", "author", GIT_COMMIT_DATE, "2", "description"
-        )
-      )
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "3b")
-      .andReturn(
-        METADATA_JOINER.join(
-          "3b", "author", GIT_COMMIT_DATE, "2", "description"
-        )
+        "---@MOE_LOG_ENTRY@---4---@MOE@---author---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@---3a 3b---@MOE@---description---@MOE@---" +
+          "---@MOE_LOG_ENTRY@---3a---@MOE@---author---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@---2---@MOE@---description---@MOE@---" +
+          "---@MOE_LOG_ENTRY@---3b---@MOE@---author---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@---2---@MOE@---description---@MOE@---" +
+          "---@MOE_LOG_ENTRY@---2---@MOE@---author---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@------@MOE@---description---@MOE@---"
       )
     control.replay()
     val database = FileDb(null, provideMoshi()
@@ -401,30 +376,17 @@ class GitRevisionHistoryTest : TestCase() {
    */
   @Throws(Exception::class) fun testFindLastEquivalenceNull() {
     val mockRepo = mockClonedRepo("repo2")
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "4")
+    expectLogCommandIgnoringMissing(mockRepo, LOG_ENTRY_SEP + LOG_FORMAT_ALL_METADATA, "4")
       .andReturn(
-        METADATA_JOINER.join(
-          "4", "author", GIT_COMMIT_DATE, "3a 3b", "description"
+        "---@MOE_LOG_ENTRY@---4---@MOE@---author---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@---3a 3b---@MOE@---description---@MOE@---" +
+          "---@MOE_LOG_ENTRY@---3a---@MOE@---author---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@---2---@MOE@---description---@MOE@---" +
+          "---@MOE_LOG_ENTRY@---3b---@MOE@---author---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@---2---@MOE@---description---@MOE@---" +
+          "---@MOE_LOG_ENTRY@---2---@MOE@---author---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@------@MOE@---description---@MOE@---"
         )
-      )
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "3a")
-      .andReturn(
-        METADATA_JOINER.join(
-          "3a", "author", GIT_COMMIT_DATE, "2", "description"
-        )
-      )
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "3b")
-      .andReturn(
-        METADATA_JOINER.join(
-          "3b", "author", GIT_COMMIT_DATE, "2", "description"
-        )
-      )
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "2")
-      .andReturn(
-        METADATA_JOINER.join(
-          "2", "author", GIT_COMMIT_DATE, "", "description"
-        )
-      )
     control.replay()
     val database =
       FileDb(null, provideMoshi().adapter(DbStorage::class.java).fromJson(testDb2), null)
@@ -470,15 +432,15 @@ class GitRevisionHistoryTest : TestCase() {
    */
   @Throws(Exception::class) fun testFindLastEquivalence_linearSearch() {
     val mockRepo = mockClonedRepo("repo2")
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "4")
+    expectLogCommandIgnoringMissing(mockRepo, LOG_ENTRY_SEP + LOG_FORMAT_ALL_METADATA, "4")
       .andReturn(
-        METADATA_JOINER.join("4", "author", GIT_COMMIT_DATE, "3a 3b", "description")
+        "---@MOE_LOG_ENTRY@---4---@MOE@---author---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@---3a 3b---@MOE@---description---@MOE@---" +
+          "---@MOE_LOG_ENTRY@---3a---@MOE@---author---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@---2---@MOE@---description---@MOE@---" +
+          "---@MOE_LOG_ENTRY@---2---@MOE@---author---@MOE@---" +
+          "$GIT_COMMIT_DATE---@MOE@------@MOE@---description---@MOE@---"
       )
-    expectLogCommandIgnoringMissing(mockRepo, LOG_FORMAT_ALL_METADATA, "3a")
-      .andReturn(
-        METADATA_JOINER.join("3a", "author", GIT_COMMIT_DATE, "2", "description")
-      )
-
     // Note revision 3b is <em>not</em> expected here for a linear history search.
     control.replay()
     val database =
@@ -500,5 +462,38 @@ class GitRevisionHistoryTest : TestCase() {
       .inOrder()
     assertThat(result.equivalences).containsExactly(expectedEq)
     control.verify()
+  }
+
+  fun testHistoryStitching() {
+    val repoName = "foo"
+    val first = RevisionMetadata.builder()
+      .id("a")
+      .date(DateTime.now())
+      .description("blah-a")
+      .withParents(Revision("q", repoName))
+      .build()
+    val second = RevisionMetadata.builder()
+      .id("b")
+      .date(DateTime.now())
+      .description("blah-b")
+      .withParents(Revision("r", repoName))
+      .build()
+    val third = RevisionMetadata.builder()
+      .id("c")
+      .date(DateTime.now())
+      .description("blah-c")
+      .withParents(Revision("s", repoName))
+      .build()
+    val commits = listOf(third, second, first) // commit history starts at end
+
+    val stitched = commits.stitchLinear()
+    assertThat(stitched[0].id()).isEqualTo("c")
+    assertThat(stitched[0].parents()).hasSize(1)
+    assertThat(stitched[0].parents().first().revId).isEqualTo("b")
+    assertThat(stitched[1].id()).isEqualTo("b")
+    assertThat(stitched[1].parents()).hasSize(1)
+    assertThat(stitched[1].parents().first().revId).isEqualTo("a")
+    assertThat(stitched[2].id()).isEqualTo("a")
+    assertThat(stitched[2].parents()).isEmpty()
   }
 }
