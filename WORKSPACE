@@ -77,9 +77,11 @@ maven_repository_specification(
         "com.google.errorprone:error_prone_annotations:2.3.1": {"insecure": True},
         "com.google.errorprone:javac-shaded:9+181-r4173-1": {"insecure": True},
         "com.google.googlejavaformat:google-java-format:1.6": {"insecure": True},
-        "com.google.guava:guava:27.0.1-jre": {"insecure": True},
+        "com.google.guava:guava:27.0.1-jre": {
+	    "insecure": True,
+	    "exclude": ["com.google.guava:listenablefuture"],
+	 },
         "com.google.guava:failureaccess:1.0.1": {"insecure": True},
-        "com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava": {"insecure": True},
         "com.google.j2objc:j2objc-annotations:1.1": {"insecure": True},
         "com.google.truth:truth:0.42": {"insecure": True},
         "com.googlecode.java-diff-utils:diffutils:1.3.0": {"insecure": True},
