@@ -39,6 +39,7 @@ jvm_unit_test(
         "//client/src/main/java/com/google/devtools/moe/client/qualifiers",
         "@maven//com/google/code/findbugs:jsr305",
         "@maven//com/google/dagger",
+        "@maven//com/google/errorprone:error_prone_annotations",
         "@maven//com/google/guava",
         "@maven//com/google/truth",
         "@maven//javax/inject:javax_inject",
