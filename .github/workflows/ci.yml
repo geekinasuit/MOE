@@ -38,12 +38,14 @@ jobs:
         mv bazelisk-darwin-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
         chmod a+x "${GITHUB_WORKSPACE}/bin/bazel"
         "${GITHUB_WORKSPACE}/bin/bazel" version
+    - name: Setup Buildbuddy
+      run: echo "build:ci --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}" >> ci.bazelrc
     - name: Build All
       run: |
-        "${GITHUB_WORKSPACE}/bin/bazel" build //...
+        "${GITHUB_WORKSPACE}/bin/bazel" build --config=ci //...
     - name: Test All
       run: |
-        "${GITHUB_WORKSPACE}/bin/bazel" test //...
+        "${GITHUB_WORKSPACE}/bin/bazel" test --config=ci //...
 
   test-linux:
     runs-on: ubuntu-latest
@@ -68,10 +70,13 @@ jobs:
         mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
         chmod a+x "${GITHUB_WORKSPACE}/bin/bazel"
         "${GITHUB_WORKSPACE}/bin/bazel" version
+    - name: Setup Buildbuddy
+      run: |
+      echo "build:ci --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}" >> ci.bazelrc
+      cat ci.bazelrc
     - name: Build All
       run: |
-        "${GITHUB_WORKSPACE}/bin/bazel" build //...
+        "${GITHUB_WORKSPACE}/bin/bazel" build --config=ci //...
     - name: Test All
       run: |
-        "${GITHUB_WORKSPACE}/bin/bazel" test //...
-
+        "${GITHUB_WORKSPACE}/bin/bazel" test --config=ci //...
