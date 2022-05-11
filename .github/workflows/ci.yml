@@ -17,6 +17,8 @@ on:
 jobs:
   test-macos:
     runs-on: macos-latest
+    env:
+      BAZELISK_GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-java@v1
@@ -35,7 +37,6 @@ jobs:
         mkdir -p "${GITHUB_WORKSPACE}/bin/"
         mv bazelisk-darwin-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
         chmod a+x "${GITHUB_WORKSPACE}/bin/bazel"
-        echo "::set-env name=BAZELISK_GITHUB_TOKEN::${{ secrets.GITHUB_TOKEN }}"
         "${GITHUB_WORKSPACE}/bin/bazel" version
     - name: Build All
       run: |
@@ -46,6 +47,8 @@ jobs:
 
   test-linux:
     runs-on: ubuntu-latest
+    env:
+      BAZELISK_GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-java@v1
@@ -64,7 +67,6 @@ jobs:
         mkdir -p "${GITHUB_WORKSPACE}/bin/"
         mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
         chmod a+x "${GITHUB_WORKSPACE}/bin/bazel"
-        echo "::set-env name=BAZELISK_GITHUB_TOKEN::${{ secrets.GITHUB_TOKEN }}"
         "${GITHUB_WORKSPACE}/bin/bazel" version
     - name: Build All
       run: |
