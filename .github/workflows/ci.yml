@@ -71,7 +71,9 @@ jobs:
         chmod a+x "${GITHUB_WORKSPACE}/bin/bazel"
         "${GITHUB_WORKSPACE}/bin/bazel" version
     - name: Setup Buildbuddy
-      run: echo "build:ci --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}" >> ci.bazelrc
+      run: |
+      echo "build:ci --remote_header=x-buildbuddy-api-key=${{ secrets.BUILDBUDDY_API_KEY }}" >> ci.bazelrc
+      cat ci.bazelrc
     - name: Build All
       run: |
         "${GITHUB_WORKSPACE}/bin/bazel" build --config=ci //...
